@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shagato Chowdhury</title>
+    <style>
+      :root {
+        --bg: #e3dfd8;
+        --panel: #e9e4df;
+        --ink: #1a1a1a;
+        --muted: #7b736d;
+        --line: rgba(26, 26, 26, 0.8);
+        --soft-line: rgba(26, 26, 26, 0.28);
+        --card: rgba(255, 255, 255, 0.12);
+        --accent: #e85a5a;
+        --accent-soft: #f3d1c7;
+        --blue: #d5e2ed;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Georgia", "Times New Roman", serif;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 56px 28px 32px;
+      }
+
+      .page {
+        width: min(1180px, 100%);
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 90px;
+        align-items: start;
+      }
+
+      .left,
+      .right {
+        min-width: 0;
+      }
+
+      h1 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        font-weight: 400;
+        font-size: clamp(2.2rem, 2.5vw, 4rem);
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+      }
+
+      .sigil {
+        width: 18px;
+        height: 18px;
+        position: relative;
+        transform: rotate(45deg);
+        border: 1.5px solid var(--ink);
+        background: transparent;
+        opacity: 0.82;
+      }
+
+      .sigil::before,
+      .sigil::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: transparent;
+      }
+
+      .sigil::before {
+        border-left: 1px solid var(--ink);
+        transform: scaleY(0.75);
+        left: 50%;
+        margin-left: -0.5px;
+      }
+
+      .sigil::after {
+        border-top: 1px solid var(--ink);
+        transform: scaleX(0.75);
+        top: 50%;
+        margin-top: -0.5px;
+      }
+
+      .subtitle {
+        margin-top: 10px;
+        font-size: clamp(1.08rem, 1.5vw, 2rem);
+        font-style: italic;
+        color: var(--muted);
+        letter-spacing: -0.03em;
+      }
+
+      .lead {
+        margin-top: 46px;
+        max-width: 620px;
+        font-size: clamp(1.35rem, 1.9vw, 3rem);
+        line-height: 1.3;
+        letter-spacing: -0.05em;
+        font-style: italic;
+        font-weight: 400;
+      }
+
+      .section {
+        margin-top: 30px;
+      }
+
+      .label {
+        display: block;
+        font-size: 1.05rem;
+        color: var(--muted);
+        font-style: italic;
+        margin-bottom: 14px;
+        letter-spacing: -0.04em;
+      }
+
+      .list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .list li {
+        position: relative;
+        font-size: clamp(1.05rem, 1.35vw, 1.7rem);
+        line-height: 1.8;
+        letter-spacing: -0.04em;
+        padding: 2px 0 2px 0;
+        color: #232323;
+      }
+
+      .list li + li {
+        margin-top: 2px;
+      }
+
+      .list li .muted {
+        color: var(--muted);
+      }
+
+      .projects {
+        padding-top: 6px;
+      }
+
+      .projects li {
+        border-bottom: 1px solid var(--soft-line);
+        padding: 8px 0;
+      }
+
+      .projects li:last-child {
+        border-bottom: 1px solid var(--soft-line);
+      }
+
+      .projects .title {
+        font-style: italic;
+        color: #1f1d1a;
+      }
+
+      .projects .desc {
+        color: #262626;
+      }
+
+      .projects small {
+        font-size: 0.92em;
+        color: var(--muted);
+      }
+
+      .portrait-frame {
+        width: min(100%, 480px);
+        aspect-ratio: 1.08;
+        margin-left: auto;
+        border: 2px solid rgba(0, 0, 0, 0.8);
+        background: #eae3dc;
+        position: relative;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+      }
+
+      .portrait {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .portrait .head {
+        position: absolute;
+        width: 120px;
+        height: 145px;
+        border: 3px solid rgba(0,0,0,0.8);
+        border-radius: 46% 46% 47% 47% / 52% 52% 48% 48%;
+        background: #f4f1eb;
+        top: 88px;
+        left: 160px;
+      }
+
+      .portrait .hair {
+        position: absolute;
+        width: 150px;
+        height: 90px;
+        background: #d4d0ca;
+        border-radius: 70% 70% 46% 46%;
+        border: 3px solid rgba(0,0,0,0.8);
+        top: 68px;
+        left: 150px;
+        z-index: 2;
+      }
+
+      .portrait .ear {
+        position: absolute;
+        width: 16px;
+        height: 20px;
+        border: 3px solid rgba(0,0,0,0.8);
+        border-radius: 50%;
+        background: #f4f1eb;
+        top: 154px;
+        left: 118px;
+        z-index: 1;
+      }
+
+      .portrait .ear.right {
+        left: 297px;
+      }
+
+      .portrait .eye {
+        position: absolute;
+        width: 11px;
+        height: 11px;
+        background: rgba(0,0,0,0.8);
+        border-radius: 50%;
+        top: 153px;
+        left: 185px;
+      }
+
+      .portrait .eye.right {
+        left: 245px;
+      }
+
+      .portrait .smile {
+        position: absolute;
+        width: 54px;
+        height: 30px;
+        border-bottom: 4px solid rgba(0,0,0,0.8);
+        border-radius: 0 0 40px 40px;
+        top: 196px;
+        left: 196px;
+      }
+
+      .portrait .neck {
+        position: absolute;
+        width: 30px;
+        height: 28px;
+        background: #f0eae2;
+        border: 3px solid rgba(0,0,0,0.8);
+        top: 230px;
+        left: 210px;
+        z-index: 1;
+      }
+
+      .portrait .shirt {
+        position: absolute;
+        width: 170px;
+        height: 150px;
+        background: #dfeaf1;
+        border: 3px solid rgba(0,0,0,0.8);
+        border-radius: 18px 18px 12px 12px;
+        top: 242px;
+        left: 142px;
+      }
+
+      .portrait .shirt::before,
+      .portrait .shirt::after {
+        content: "";
+        position: absolute;
+        width: 60px;
+        height: 115px;
+        border: 3px solid rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0);
+        top: 18px;
+      }
+
+      .portrait .shirt::before {
+        left: -18px;
+        transform: rotate(18deg);
+        border-right: none;
+      }
+
+      .portrait .shirt::after {
+        right: -18px;
+        transform: rotate(-18deg);
+        border-left: none;
+      }
+
+      .portrait .arm {
+        position: absolute;
+        width: 118px;
+        height: 22px;
+        border: 3px solid rgba(0,0,0,0.8);
+        background: #f4f1eb;
+        border-radius: 18px;
+        top: 274px;
+        left: 265px;
+        transform: rotate(12deg);
+      }
+
+      .portrait .arm.right {
+        left: 118px;
+        transform: rotate(-20deg);
+      }
+
+      .portrait .laptop {
+        position: absolute;
+        width: 135px;
+        height: 90px;
+        border: 3px solid rgba(0,0,0,0.8);
+        background: rgba(255,255,255,0.12);
+        top: 248px;
+        left: 246px;
+        border-radius: 8px;
+        transform: rotate(12deg);
+      }
+
+      .portrait .laptop::before {
+        content: "";
+        position: absolute;
+        width: 118px;
+        height: 10px;
+        background: rgba(0,0,0,0.1);
+        border-radius: 12px;
+        bottom: -12px;
+        left: 8px;
+      }
+
+      .portrait .laptop::after {
+        content: "";
+        position: absolute;
+        width: 80px;
+        height: 18px;
+        border: 3px solid rgba(0,0,0,0.8);
+        border-top: none;
+        background: rgba(0,0,0,0.04);
+        bottom: -30px;
+        left: 28px;
+      }
+
+      .profile-card {
+        margin-top: 16px;
+        width: min(100%, 430px);
+        margin-left: auto;
+        border: 2px solid rgba(0, 0, 0, 0.7);
+        background: rgba(255,255,255,0.06);
+        border-radius: 8px;
+        padding: 24px 20px 18px;
+      }
+
+      .card-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .card-title h3 {
+        margin: 0;
+        font-size: clamp(1.2rem, 1.7vw, 2rem);
+        font-weight: 500;
+        letter-spacing: -0.04em;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px 12px;
+        margin-top: 10px;
+        font-size: clamp(0.95rem, 1.2vw, 1.25rem);
+        line-height: 1.8;
+      }
+
+      .stats .value {
+        font-weight: 500;
+        color: #1d1d1d;
+      }
+
+      .donut-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 130px;
+      }
+
+      .donut {
+        --ring: 58%;
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: conic-gradient(#d95d5d 0 70%, #efe8e0 70% 100%);
+        position: relative;
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,0.7);
+      }
+
+      .donut::before {
+        content: "";
+        position: absolute;
+        inset: 14px;
+        background: rgba(227, 223, 216, 0.9);
+        border-radius: 50%;
+        border: 2px solid rgba(0,0,0,0.7);
+      }
+
+      .donut::after {
+        content: "C+";
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 2rem;
+        letter-spacing: -0.06em;
+        color: #2a2a2a;
+        font-weight: 500;
+      }
+
+      .mini-bars {
+        margin-top: 18px;
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+        border-top: 2px solid rgba(0,0,0,0.2);
+        padding-top: 10px;
+      }
+
+      .bar-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-width: 80px;
+      }
+
+      .bar {
+        width: 14px;
+        border-radius: 5px 5px 0 0;
+        background: #d95d5d;
+        border: 2px solid rgba(0,0,0,0.7);
+        border-bottom: none;
+        position: relative;
+      }
+
+      .bar:nth-child(1) { height: 30px; }
+      .bar:nth-child(2) { height: 48px; }
+      .bar:nth-child(3) { height: 58px; }
+
+      .bar-group .label {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .arc {
+        width: 26px;
+        height: 26px;
+        border: 3px solid rgba(0,0,0,0.8);
+        border-color: rgba(0,0,0,0.8) transparent transparent rgba(0,0,0,0.8);
+        border-radius: 50%;
+        transform: rotate(25deg);
+        background: transparent;
+      }
+
+      @media (max-width: 940px) {
+        .page {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+
+        .portrait-frame,
+        .profile-card {
+          margin-left: 0;
+        }
+
+        .right {
+          order: 1;
+        }
+      }
+
+      @media (max-width: 560px) {
+        body {
+          padding: 28px 16px 40px;
+        }
+
+        .lead {
+          max-width: 100%;
+        }
+
+        .projects li {
+          line-height: 1.6;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="left">
+        <h1>
+          Sanjida
+          <span class="sigil" aria-hidden="true"></span>
+        </h1>
+        <div class="subtitle">Student • Dhaka.</div>
+
+        <p class="lead">
+          I speak with purpose, think critically, and turn ideas into confident voices.
+        </p>
+
+        <div class="section">
+          <span class="label">experience</span>
+          <ul class="list">
+            <li><span class="muted">TV Debate Competition</span> — 2nd place, 2024</li>
+            <li><span class="muted">School Debate Club</span> — Public speaking and critical thinking, 2023–2025</li>
+          </ul>
+        </div>
+
+        <div class="section projects">
+          <span class="label">achievements</span>
+          <ul class="list projects">
+            <li><span class="title">2nd Place</span> — TV Debate Competition, 2024</li>
+            <li><span class="title">Active Speaker</span> — School debate and discussion events, 2023–2025</li>
+            <li><span class="title">Leadership</span> — Team presentations and public communication, 2024–2025</li>
+            <li><span class="title">Critical Thinking</span> — Research-driven participation in discussions, 2025</li>
+          </ul>
+        </div>
+      </section>
+
+      <aside class="right">
+        <div class="portrait-frame">
+          <div class="portrait" aria-hidden="true">
+            <div class="hair"></div>
+            <div class="ear"></div>
+            <div class="ear right"></div>
+            <div class="head"></div>
+            <div class="eye"></div>
+            <div class="eye right"></div>
+            <div class="smile"></div>
+            <div class="neck"></div>
+            <div class="shirt"></div>
+            <div class="arm"></div>
+            <div class="arm right"></div>
+            <div class="laptop"></div>
+          </div>
+        </div>
+
+        <div class="profile-card">
+          <div class="card-title">
+            <h3>Sanjida's Highlights</h3>
+          </div>
+
+          <div class="stats">
+            <div>Debate wins:</div>
+            <div class="value">2</div>
+
+            <div>Competitions:</div>
+            <div class="value">5</div>
+
+            <div>Public speaking:</div>
+            <div class="value">Strong</div>
+
+            <div>Best achievement:</div>
+            <div class="value">2nd place</div>
+
+            <div>Focus:</div>
+            <div class="value">Leadership</div>
+          </div>
+
+          <div class="donut-wrap">
+            <div class="donut" aria-label="Achievement rating"></div>
+          </div>
+        </div>
+
+        <div class="mini-bars" aria-label="Contribution bars">
+          <div class="bar-group">
+            <div class="bar"></div>
+            <div class="label">3</div>
+          </div>
+          <div class="bar-group">
+            <div class="bar"></div>
+            <div class="label">3</div>
+          </div>
+          <div class="bar-group">
+            <div class="bar"></div>
+            <div class="label">5</div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>
