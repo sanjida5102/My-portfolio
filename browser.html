@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aura Browser — Next-Gen Web Navigator</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/browser.css" />
+</head>
+<body>
+
+  <!-- Master Application Container -->
+  <div id="browser-app">
+
+    <!-- Left Sidebar Rail -->
+    <nav id="sidebar-rail">
+      <div class="rail-section">
+        <div class="rail-logo" title="Aura Browser">🪐</div>
+        <button class="rail-btn" data-action="newtab" data-tooltip="New Tab (Ctrl+T)">➕</button>
+        <button class="rail-btn" data-action="search" data-tooltip="NeoSearch Engine">🔍</button>
+        <button class="rail-btn" data-action="ai" data-tooltip="Aura AI Copilot">🤖</button>
+        <button class="rail-btn" data-action="codelab" data-tooltip="CodeLab Studio">💻</button>
+        <button class="rail-btn" data-action="arcade" data-tooltip="Arcade Games">🎮</button>
+        <button class="rail-btn" data-action="notes" data-tooltip="Web Scratchpad">📝</button>
+      </div>
+
+      <div class="rail-section">
+        <button class="rail-btn" data-action="bookmarks" data-tooltip="Bookmarks (Ctrl+B)">⭐</button>
+        <button class="rail-btn" data-action="history" data-tooltip="History (Ctrl+H)">🕒</button>
+        <button class="rail-btn" data-action="downloads" data-tooltip="Downloads (Ctrl+J)">📥</button>
+        <button class="rail-btn" data-action="settings" data-tooltip="Settings">⚙️</button>
+      </div>
+    </nav>
+
+    <!-- Main Browser Body -->
+    <main id="browser-main">
+
+      <!-- Header: Window Titlebar + Tab Strip -->
+      <header id="browser-header">
+        
+        <!-- Top Window Titlebar -->
+        <div class="window-titlebar">
+          <div class="titlebar-left">
+            <div class="window-controls">
+              <span class="win-dot close" title="Close Window" onclick="alert('Aura Browser session active.')"></span>
+              <span class="win-dot min" title="Minimize Window"></span>
+              <span class="win-dot max" title="Maximize Window" onclick="document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()"></span>
+            </div>
+
+            <!-- Workspaces -->
+            <div class="workspace-selector">
+              <span class="ws-pill active" data-ws="general">General</span>
+              <span class="ws-pill" data-ws="dev">Dev</span>
+              <span class="ws-pill" data-ws="research">Research</span>
+              <span class="ws-pill" data-ws="media">Media</span>
+            </div>
+          </div>
+
+          <div class="titlebar-center">
+            <div class="incognito-badge">🕶️ Incognito Window</div>
+            <span>Aura Browser • Web 3.0 Engine</span>
+          </div>
+
+          <div class="titlebar-right">
+            <button class="top-mini-btn" id="btn-split-view" title="Toggle Split View">🔲</button>
+            <button class="top-mini-btn" id="btn-toggle-incognito" title="Incognito Mode (Ctrl+Shift+N)">🕶️</button>
+            <button class="top-mini-btn" id="btn-toggle-devtools" title="Developer Tools (F12)">🛠️</button>
+          </div>
+        </div>
+
+        <!-- Tab Strip -->
+        <div class="tab-strip-wrapper">
+          <div id="tab-strip"></div>
+          <button class="new-tab-btn" id="btn-new-tab" title="New Tab (Ctrl+T)">＋</button>
+        </div>
+
+      </header>
+
+      <!-- Toolbar: Navigation, Omnibox, Extensions -->
+      <div id="browser-toolbar">
+        <div class="nav-actions">
+          <button class="toolbar-btn" id="btn-nav-back" title="Click to go back">◀</button>
+          <button class="toolbar-btn" id="btn-nav-forward" title="Click to go forward">▶</button>
+          <button class="toolbar-btn" id="btn-nav-reload" title="Reload (Ctrl+R)">🔄</button>
+          <button class="toolbar-btn" id="btn-nav-home" title="Home (New Tab)">🏠</button>
+        </div>
+
+        <!-- Omnibox Address & Search Bar -->
+        <div class="omnibox-container">
+          <div class="security-badge" id="security-badge" title="Security Status">
+            🔒 <span>Secure</span>
+          </div>
+
+          <input type="text" id="omnibox-input" placeholder="Search web or enter address (e.g., wikipedia, codelab, news)..." autocomplete="off" spellcheck="false" />
+
+          <div class="omnibox-actions">
+            <button class="omnibox-btn" id="btn-omnibox-star" title="Bookmark Page (Ctrl+D)">☆</button>
+          </div>
+
+          <!-- Omnibox Auto-complete Dropdown -->
+          <div id="omnibox-dropdown"></div>
+        </div>
+
+        <!-- Toolbar Right Actions -->
+        <div class="toolbar-right-actions">
+          <div class="extension-tray">
+            <button class="ext-icon-btn" title="AdBlock Pro: Active (14 blocked)" onclick="window.BrowserEngine.showToast('🛡️ AdBlocker Active: 14 ads blocked')">
+              🛡️<span class="ext-badge">14</span>
+            </button>
+            <button class="ext-icon-btn" title="Dark Reader" onclick="document.body.classList.toggle('dark-reader-active'); window.BrowserEngine.showToast('🌙 Inverted Content Filter Toggled')">
+              🌙
+            </button>
+            <button class="ext-icon-btn" title="Developer Tools (F12)" onclick="window.DevToolsEngine.toggle()">
+              🛠️
+            </button>
+          </div>
+
+          <div class="user-avatar-btn" title="User Profile: Sanjida">S</div>
+          <button class="toolbar-btn" title="Browser Menu" onclick="window.BrowserEngine.navigateTo(window.BrowserEngine.activeTabId, 'browser://settings')">⋮</button>
+        </div>
+      </div>
+
+      <!-- Bookmarks Bar -->
+      <div id="bookmarks-bar"></div>
+
+      <!-- Viewport Stage -->
+      <div id="viewport-container">
+        <div class="view-stage"></div>
+
+        <!-- Status Bar (URL Hover / Zoom) -->
+        <div id="browser-status-bar">Ready</div>
+      </div>
+
+      <!-- Developer Tools Drawer -->
+      <div id="browser-devtools">
+        <div class="devtools-toolbar">
+          <div class="devtools-tabs">
+            <button class="devtools-tab-btn active" data-tab="console">🖥️ Console</button>
+            <button class="devtools-tab-btn" data-tab="elements">🔍 Elements</button>
+            <button class="devtools-tab-btn" data-tab="network">🌐 Network</button>
+            <button class="devtools-tab-btn" data-tab="storage">💾 Application</button>
+          </div>
+          <button class="top-mini-btn" id="devtools-close-btn">✕</button>
+        </div>
+        <div class="devtools-content-panel" id="devtools-content"></div>
+      </div>
+
+    </main>
+
+    <!-- Collapsible Side Panel (AI Assistant / Notes) -->
+    <aside id="browser-sidepanel">
+      <div class="sidepanel-header">
+        <div class="sidepanel-title">🤖 Aura AI Copilot</div>
+        <button class="sidepanel-close" id="sidepanel-close-btn">✕</button>
+      </div>
+      <div class="sidepanel-body"></div>
+    </aside>
+
+  </div>
+
+  <!-- Custom Context Menu -->
+  <div id="custom-context-menu"></div>
+
+  <!-- Toast Notifications Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/builtin-apps.js"></script>
+  <script src="js/devtools.js"></script>
+  <script src="js/browser.js"></script>
+</body>
+</html>

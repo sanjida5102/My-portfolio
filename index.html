@@ -1,597 +1,3089 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shagato Chowdhury</title>
-    <style>
-      :root {
-        --bg: #e3dfd8;
-        --panel: #e9e4df;
-        --ink: #1a1a1a;
-        --muted: #7b736d;
-        --line: rgba(26, 26, 26, 0.8);
-        --soft-line: rgba(26, 26, 26, 0.28);
-        --card: rgba(255, 255, 255, 0.12);
-        --accent: #e85a5a;
-        --accent-soft: #f3d1c7;
-        --blue: #d5e2ed;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Sanjida Islam Maisha | 3D Interactive Portfolio World</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+
+  <!-- Three.js and OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #070913;
+      --bg-card: rgba(13, 18, 36, 0.75);
+      --bg-card-hover: rgba(22, 31, 62, 0.85);
+      --cyan: #00f2fe;
+      --cyan-glow: rgba(0, 242, 254, 0.4);
+      --purple: #9d4edd;
+      --purple-glow: rgba(157, 78, 221, 0.4);
+      --gold: #ffb703;
+      --gold-glow: rgba(255, 183, 3, 0.45);
+      --pink: #ff2a85;
+      --text: #f0f4fc;
+      --text-muted: #8e9bb8;
+      --border: rgba(0, 242, 254, 0.22);
+      --border-bright: rgba(0, 242, 254, 0.6);
+      --font-display: 'Orbitron', monospace;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-heading: 'Syne', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      color: var(--text);
+      font-family: var(--font-body);
+    }
+
+    /* 3D Canvas */
+    #webgl-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      display: block;
+      outline: none;
+    }
+
+    /* Game HUD Overlay */
+    #hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18px 24px;
+      transition: opacity 0.3s ease;
+    }
+
+    .interactive {
+      pointer-events: auto;
+    }
+
+    /* Top Navigation Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 16px;
+    }
+
+    .player-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 8px 18px 8px 10px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 15px var(--cyan-glow);
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      padding: 2px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple), var(--gold));
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #11162b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--cyan);
+      font-family: var(--font-display);
+    }
+
+    .status-badge {
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 12px;
+      height: 12px;
+      background: #00ff88;
+      border-radius: 50%;
+      border: 2px solid var(--bg-dark);
+      box-shadow: 0 0 8px #00ff88;
+    }
+
+    .player-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .player-name {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .player-title {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    .xp-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 3px;
+    }
+
+    .xp-bar-bg {
+      width: 80px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 242, 254, 0.3);
+    }
+
+    .xp-bar-fill {
+      width: 85%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .xp-text {
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    /* Top Action Buttons */
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hud-btn {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      padding: 10px 16px;
+      border-radius: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .hud-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px var(--cyan-glow);
+    }
+
+    .hud-btn.active {
+      background: rgba(0, 242, 254, 0.18);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 1.1rem;
+    }
+
+    /* Quest / Discovery Tracker */
+    .quest-tracker {
+      position: absolute;
+      top: 90px;
+      left: 24px;
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--gold);
+      border-radius: 12px;
+      padding: 12px 18px;
+      max-width: 280px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      animation: slideInLeft 0.8s ease-out;
+    }
+
+    .quest-title {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .quest-desc {
+      font-size: 0.8rem;
+      color: #e2e8f0;
+      line-height: 1.35;
+    }
+
+    .quest-progress-bar {
+      margin-top: 8px;
+      height: 5px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .quest-progress-fill {
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, var(--gold), #ff5722);
+      transition: width 0.4s ease;
+    }
+
+    /* Minimap Radar */
+    .radar-container {
+      position: absolute;
+      top: 90px;
+      right: 24px;
+      width: 140px;
+      height: 140px;
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,242,254,0.1);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #radar-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .radar-sweep {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(0,242,254,0.3) 0deg, transparent 60deg, transparent 360deg);
+      animation: sweep 4s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes sweep {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Proximity Interact Banner */
+    .interact-prompt {
+      position: absolute;
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(157, 78, 221, 0.3));
+      backdrop-filter: blur(20px);
+      border: 1.5px solid var(--cyan);
+      border-radius: 30px;
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      letter-spacing: 0.05em;
+      box-shadow: 0 0 25px var(--cyan-glow);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 20;
+    }
+
+    .interact-prompt.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    .key-badge {
+      background: #ffffff;
+      color: #000;
+      font-weight: 900;
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      animation: pulseKey 1.5s infinite;
+    }
+
+    @keyframes pulseKey {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* Bottom Quick Travel Navigation Dock */
+    .bottom-dock {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .dock-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 8px 12px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 242, 254, 0.15);
+      max-width: 95vw;
+      overflow-x: auto;
+    }
+
+    .dock-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      padding: 10px 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.25s ease;
+    }
+
+    .dock-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .dock-btn.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(157, 78, 221, 0.25));
+      border: 1px solid var(--cyan);
+      color: #fff;
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+
+    .dock-btn .dock-icon {
+      font-size: 1.1rem;
+    }
+
+    /* Controls Helper (Desktop & Mobile) */
+    .controls-hint {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .controls-hint strong {
+      color: var(--cyan);
+      font-family: var(--font-display);
+    }
+
+    /* Mobile Joystick Overlay */
+    #mobile-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      display: none;
+      justify-content: space-between;
+      align-items: flex-end;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .joystick-zone {
+      width: 120px;
+      height: 120px;
+      background: rgba(13, 18, 36, 0.6);
+      border: 2px dashed rgba(0, 242, 254, 0.4);
+      border-radius: 50%;
+      position: relative;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    .joystick-knob {
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle, var(--cyan), #0077b6);
+      border-radius: 50%;
+      position: absolute;
+      top: 35px;
+      left: 35px;
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+
+    .mobile-action-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    .mob-btn {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1.5px solid var(--cyan);
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      cursor: pointer;
+    }
+
+    .mob-btn:active {
+      background: var(--cyan);
+      color: #000;
+      transform: scale(0.95);
+    }
+
+    /* Modals & Detail Overlays */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(3, 5, 15, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      width: min(880px, 100%);
+      max-height: 88vh;
+      background: linear-gradient(145deg, rgba(17, 24, 48, 0.95), rgba(9, 13, 29, 0.98));
+      border: 1.5px solid var(--border-bright);
+      border-radius: 28px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px var(--cyan-glow);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transform: scale(0.92) translateY(20px);
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.open .modal-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 30px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      background: rgba(13, 18, 36, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 5;
+    }
+
+    .modal-title-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .modal-badge {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--cyan);
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid var(--cyan);
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .close-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .close-btn:hover {
+      background: var(--pink);
+      border-color: var(--pink);
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+
+    /* Grid layout inside Modals */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2col {
+        grid-template-columns: 1fr;
       }
+    }
 
-      * { box-sizing: border-box; }
+    /* Image Display & Placeholder Frames */
+    .image-showcase-frame {
+      width: 100%;
+      aspect-ratio: 16/10;
+      background: #0d1326;
+      border: 2px dashed rgba(0, 242, 254, 0.35);
+      border-radius: 18px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      transition: all 0.3s ease;
+    }
 
-      html, body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--ink);
-        font-family: "Georgia", "Times New Roman", serif;
+    .image-showcase-frame:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px var(--cyan-glow);
+    }
+
+    .image-showcase-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+      display: none;
+    }
+
+    .image-showcase-frame img.active {
+      display: block;
+    }
+
+    .image-placeholder-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+      color: var(--text-muted);
+    }
+
+    .image-placeholder-icon {
+      font-size: 2.2rem;
+      color: var(--cyan);
+      opacity: 0.8;
+    }
+
+    .image-placeholder-label {
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .image-placeholder-sub {
+      font-size: 0.72rem;
+      max-width: 260px;
+      color: var(--text-muted);
+    }
+
+    .upload-trigger-btn {
+      margin-top: 6px;
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      color: var(--cyan);
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid var(--cyan);
+      padding: 6px 14px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .upload-trigger-btn:hover {
+      background: var(--cyan);
+      color: #000;
+    }
+
+    /* Achievement Cards in Hall */
+    .achievement-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .achievement-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .achievement-card:hover {
+      border-color: var(--gold);
+      background: rgba(255, 183, 3, 0.08);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px var(--gold-glow);
+    }
+
+    .achievement-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--gold);
+    }
+
+    .achieve-rank {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .achieve-name {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.35;
+    }
+
+    .achieve-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .achieve-slot {
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--cyan);
+    }
+
+    /* Skills & Stats bars */
+    .skill-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .skill-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .skill-bar-wrap {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .skill-bar-progress {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+      transition: width 1s ease-out;
+    }
+
+    /* Timeline in Leadership */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      padding-left: 24px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--cyan), var(--purple), var(--gold));
+    }
+
+    .timeline-item {
+      position: relative;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: -24px;
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--bg-dark);
+      border: 3px solid var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    .timeline-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .timeline-sub {
+      font-size: 0.8rem;
+      color: var(--cyan);
+      font-family: var(--font-display);
+      margin: 2px 0 6px;
+    }
+
+    .timeline-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Contact Card */
+    .contact-card-box {
+      background: rgba(0, 242, 254, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .contact-input {
+      background: rgba(13, 18, 36, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .contact-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    textarea.contact-input {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, var(--cyan), #0077b6);
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      color: #000;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 20px var(--cyan-glow);
+    }
+
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--cyan-glow);
+    }
+
+    /* Toast Notification */
+    .toast-popup {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1.5px solid var(--gold);
+      border-radius: 16px;
+      padding: 14px 20px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px var(--gold-glow);
+      transform: translateY(100px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 200;
+    }
+
+    .toast-popup.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Intro Welcome Screen / Start Game */
+    #start-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, #101633 0%, #050713 100%);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+
+    #start-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .start-content {
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .start-badge {
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      letter-spacing: 0.25em;
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      padding: 6px 16px;
+      border-radius: 30px;
+      background: rgba(0,242,254,0.1);
+      box-shadow: 0 0 15px var(--cyan-glow);
+      text-transform: uppercase;
+    }
+
+    .start-title {
+      font-family: var(--font-heading);
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #ffffff 30%, var(--cyan) 70%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .start-subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .play-btn {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      border: none;
+      padding: 16px 42px;
+      border-radius: 40px;
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      box-shadow: 0 0 35px var(--cyan-glow);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 0 50px rgba(0, 242, 254, 0.8);
+    }
+
+    .guide-tags {
+      display: flex;
+      gap: 14px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    .guide-tag {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Responsive styling */
+    @media (max-width: 768px) {
+      #hud {
+        padding: 12px 16px;
       }
-
-      body {
-        min-height: 100vh;
+      .player-card {
+        padding: 6px 12px 6px 8px;
+      }
+      .player-title, .xp-container {
+        display: none;
+      }
+      .radar-container {
+        display: none;
+      }
+      .quest-tracker {
+        display: none;
+      }
+      .controls-hint {
+        display: none;
+      }
+      #mobile-controls {
         display: flex;
-        justify-content: center;
-        padding: 56px 28px 32px;
       }
-
-      .page {
-        width: min(1180px, 100%);
-        display: grid;
-        grid-template-columns: 1.15fr 0.85fr;
-        gap: 90px;
-        align-items: start;
+      .dock-bar {
+        padding: 6px 8px;
+        gap: 4px;
       }
-
-      .left,
-      .right {
-        min-width: 0;
+      .dock-btn {
+        padding: 8px 12px;
+        font-size: 0.7rem;
       }
+    }
+  </style>
+</head>
+<body>
 
-      h1 {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        font-weight: 400;
-        font-size: clamp(2.2rem, 2.5vw, 4rem);
-        letter-spacing: -0.04em;
-        line-height: 1.05;
-      }
+  <!-- 3D Three.js Canvas -->
+  <canvas id="webgl-canvas"></canvas>
 
-      .sigil {
-        width: 18px;
-        height: 18px;
-        position: relative;
-        transform: rotate(45deg);
-        border: 1.5px solid var(--ink);
-        background: transparent;
-        opacity: 0.82;
-      }
+  <!-- Interactive HUD Layer -->
+  <div id="hud">
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <!-- Player Profile Pill -->
+      <div class="player-card interactive" onclick="openModal('modal-bio')">
+        <div class="avatar-wrapper">
+          <div class="avatar-img" id="hud-avatar">SM</div>
+          <div class="status-badge"></div>
+        </div>
+        <div class="player-info">
+          <span class="player-name">Sanjida Islam Maisha <span style="color:var(--gold)">★</span></span>
+          <span class="player-title">Debater • Public Speaker • Prefect</span>
+          <div class="xp-container">
+            <div class="xp-bar-bg">
+              <div class="xp-bar-fill" id="hud-xp-bar"></div>
+            </div>
+            <span class="xp-text" id="hud-xp-text">LVL 9</span>
+          </div>
+        </div>
+      </div>
 
-      .sigil::before,
-      .sigil::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: transparent;
-      }
+      <!-- Top Action Controls -->
+      <div class="top-actions interactive">
+        <button class="hud-btn" id="btn-camera-mode" onclick="toggleCameraMode()" title="Switch Camera Mode">
+          <span>🎥</span> <span class="btn-label">Orbit View</span>
+        </button>
+        <button class="hud-btn icon-btn" id="btn-sound" onclick="toggleSound()" title="Toggle Sound FX">
+          🔊
+        </button>
+        <button class="hud-btn icon-btn" onclick="openModal('modal-help')" title="Controls & Guide">
+          ❓
+        </button>
+      </div>
+    </header>
 
-      .sigil::before {
-        border-left: 1px solid var(--ink);
-        transform: scaleY(0.75);
-        left: 50%;
-        margin-left: -0.5px;
-      }
+    <!-- Quest Tracker Widget -->
+    <div class="quest-tracker interactive">
+      <div class="quest-title">🏆 Scholar's Odyssey</div>
+      <div class="quest-desc" id="quest-text">Explore the 6 Landmark Monoliths across the arena.</div>
+      <div class="quest-progress-bar">
+        <div class="quest-progress-fill" id="quest-fill" style="width: 15%;"></div>
+      </div>
+    </div>
 
-      .sigil::after {
-        border-top: 1px solid var(--ink);
-        transform: scaleX(0.75);
-        top: 50%;
-        margin-top: -0.5px;
-      }
+    <!-- Minimap Radar -->
+    <div class="radar-container interactive" title="Mini Radar Map">
+      <canvas id="radar-canvas" width="140" height="140"></canvas>
+      <div class="radar-sweep"></div>
+    </div>
 
-      .subtitle {
-        margin-top: 10px;
-        font-size: clamp(1.08rem, 1.5vw, 2rem);
-        font-style: italic;
-        color: var(--muted);
-        letter-spacing: -0.03em;
-      }
+    <!-- Proximity Interaction Banner -->
+    <div class="interact-prompt interactive" id="interact-banner" onclick="triggerCurrentZoneInteraction()">
+      <span class="key-badge">E</span>
+      <span id="interact-banner-text">Inspect Achievement Monolith</span>
+    </div>
 
-      .lead {
-        margin-top: 46px;
-        max-width: 620px;
-        font-size: clamp(1.35rem, 1.9vw, 3rem);
-        line-height: 1.3;
-        letter-spacing: -0.05em;
-        font-style: italic;
-        font-weight: 400;
-      }
+    <!-- Bottom Dock for Fast-Travel Teleportation -->
+    <footer class="bottom-dock">
+      <nav class="dock-bar interactive">
+        <button class="dock-btn active" onclick="teleportToZone('bio')">
+          <span class="dock-icon">🏛️</span> <span>Identity Core</span>
+        </button>
+        <button class="dock-btn" onclick="teleportToZone('achievements')">
+          <span class="dock-icon">🏆</span> <span>Trophy Hall</span>
+        </button>
+        <button class="dock-btn" onclick="teleportToZone('leadership')">
+          <span class="dock-icon">👑</span> <span>Leadership & House</span>
+        </button>
+        <button class="dock-btn" onclick="teleportToZone('skills')">
+          <span class="dock-icon">⚡</span> <span>Skill Matrix</span>
+        </button>
+        <button class="dock-btn" onclick="teleportToZone('gallery')">
+          <span class="dock-icon">🖼️</span> <span>Image Vault</span>
+        </button>
+        <button class="dock-btn" onclick="teleportToZone('contact')">
+          <span class="dock-icon">📡</span> <span>Transmission</span>
+        </button>
+      </nav>
+    </footer>
 
-      .section {
-        margin-top: 30px;
-      }
+    <!-- Desktop Controls Helper -->
+    <div class="controls-hint">
+      <div><strong>WASD / Arrows</strong> — Move Avatar</div>
+      <div><strong>SPACE</strong> — Jump & Boost</div>
+      <div><strong>CLICK MONUMENT</strong> — Teleport & Inspect</div>
+      <div><strong>DRAG MOUSE</strong> — Rotate Camera</div>
+    </div>
+  </div>
 
-      .label {
-        display: block;
-        font-size: 1.05rem;
-        color: var(--muted);
-        font-style: italic;
-        margin-bottom: 14px;
-        letter-spacing: -0.04em;
-      }
+  <!-- Mobile Touch Controls -->
+  <div id="mobile-controls">
+    <div class="joystick-zone" id="joystick-container">
+      <div class="joystick-knob" id="joystick-knob"></div>
+    </div>
+    <div class="mobile-action-btns">
+      <button class="mob-btn" onclick="triggerPlayerJump()" title="Jump">JUMP</button>
+      <button class="mob-btn" onclick="triggerCurrentZoneInteraction()" title="Interact">ACT</button>
+    </div>
+  </div>
 
-      .list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
+  <!-- Toast Popups -->
+  <div class="toast-popup" id="toast">
+    <span style="font-size: 1.4rem;" id="toast-icon">✨</span>
+    <div>
+      <div style="font-weight: 800; font-family: var(--font-display);" id="toast-title">Achievement Unlocked!</div>
+      <div style="font-size: 0.75rem; color: #cbd5e1;" id="toast-msg">You discovered the Trophy Hall!</div>
+    </div>
+  </div>
 
-      .list li {
-        position: relative;
-        font-size: clamp(1.05rem, 1.35vw, 1.7rem);
-        line-height: 1.8;
-        letter-spacing: -0.04em;
-        padding: 2px 0 2px 0;
-        color: #232323;
-      }
+  <!-- Hidden File Input for Image Upload / Replacement Preview -->
+  <input type="file" id="image-upload-input" accept="image/*" style="display: none;" onchange="handleImageUpload(event)" />
 
-      .list li + li {
-        margin-top: 2px;
-      }
+  <!-- ================= MODALS & DETAIL PANELS ================= -->
 
-      .list li .muted {
-        color: var(--muted);
-      }
+  <!-- Modal 1: Bio Core / Who I Am -->
+  <div class="modal-overlay" id="modal-bio" onclick="handleBackdropClick(event, 'modal-bio')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">Profile Intel</span>
+          <h2 class="modal-title">Sanjida Islam Maisha</h2>
+        </div>
+        <button class="close-btn" onclick="closeModal('modal-bio')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2col">
+          <!-- Left: Image / Portrait Slot -->
+          <div>
+            <div class="image-showcase-frame" id="bio-image-frame">
+              <img id="bio-img-preview" src="" alt="Sanjida Islam Maisha Portrait" />
+              <div class="image-placeholder-content" id="bio-img-placeholder">
+                <div class="image-placeholder-icon">👩‍🎓</div>
+                <div class="image-placeholder-label">Portrait Photo Space</div>
+                <p class="image-placeholder-sub">Place your portrait image here (e.g. `img/portrait.jpg` or upload to preview).</p>
+                <button class="upload-trigger-btn" onclick="openImageUploader('bio-img-preview', 'bio-img-placeholder')">📷 Upload / Change Photo</button>
+              </div>
+            </div>
+            <div style="margin-top: 14px; background: rgba(0,242,254,0.05); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+              <div style="font-family: var(--font-display); font-size: 0.75rem; color: var(--cyan); font-weight: 700; margin-bottom: 6px;">QUICK BIO STATS</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
+                <div>📍 <strong>Location:</strong> Dhaka, Bangladesh</div>
+                <div>🏛️ <strong>Institution:</strong> Sena Public School & College</div>
+                <div>🎙️ <strong>Core Passion:</strong> Parliamentary Debate & Public Speaking</div>
+                <div>✍️ <strong>Specialty:</strong> Analytical Essay Writing & Leadership</div>
+              </div>
+            </div>
+          </div>
 
-      .projects {
-        padding-top: 6px;
-      }
+          <!-- Right: Narrative & Statement -->
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: #fff; margin-bottom: 8px;">
+                "Speaking with purpose, thinking with critical clarity, and leading with conviction."
+              </h3>
+              <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.65;">
+                I am an accomplished debater, competitive orator, and creative writer dedicated to turning rigorous ideas into persuasive voices. Through regional championships, national debate festivals, and institutional leadership as House Prefect, I have honed the craft of impactful communication, structured logic, and inspiring teamwork.
+              </p>
+            </div>
 
-      .projects li {
-        border-bottom: 1px solid var(--soft-line);
-        padding: 8px 0;
-      }
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px;">
+              <div style="font-family: var(--font-display); font-size: 0.75rem; color: var(--gold); font-weight: 800; margin-bottom: 10px;">CORE PILLARS</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.8rem;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="color: var(--cyan);">✔</span> Critical Analysis
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="color: var(--cyan);">✔</span> Rapid Rebuttals
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="color: var(--cyan);">✔</span> Strategic Eloquence
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="color: var(--cyan);">✔</span> Team Governance
+                </div>
+              </div>
+            </div>
 
-      .projects li:last-child {
-        border-bottom: 1px solid var(--soft-line);
-      }
+            <button class="send-btn" onclick="closeModal('modal-bio'); teleportToZone('achievements');">
+              <span>Explore My 6 Key Achievements</span> ➜
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      .projects .title {
-        font-style: italic;
-        color: #1f1d1a;
-      }
-
-      .projects .desc {
-        color: #262626;
-      }
-
-      .projects small {
-        font-size: 0.92em;
-        color: var(--muted);
-      }
-
-      .portrait-frame {
-        width: min(100%, 480px);
-        aspect-ratio: 1.08;
-        margin-left: auto;
-        border: 2px solid rgba(0, 0, 0, 0.8);
-        background: #eae3dc;
-        position: relative;
-        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
-      }
-
-      .portrait {
-        position: absolute;
-        inset: 0;
-        overflow: hidden;
-      }
-
-      .portrait .head {
-        position: absolute;
-        width: 120px;
-        height: 145px;
-        border: 3px solid rgba(0,0,0,0.8);
-        border-radius: 46% 46% 47% 47% / 52% 52% 48% 48%;
-        background: #f4f1eb;
-        top: 88px;
-        left: 160px;
-      }
-
-      .portrait .hair {
-        position: absolute;
-        width: 150px;
-        height: 90px;
-        background: #d4d0ca;
-        border-radius: 70% 70% 46% 46%;
-        border: 3px solid rgba(0,0,0,0.8);
-        top: 68px;
-        left: 150px;
-        z-index: 2;
-      }
-
-      .portrait .ear {
-        position: absolute;
-        width: 16px;
-        height: 20px;
-        border: 3px solid rgba(0,0,0,0.8);
-        border-radius: 50%;
-        background: #f4f1eb;
-        top: 154px;
-        left: 118px;
-        z-index: 1;
-      }
-
-      .portrait .ear.right {
-        left: 297px;
-      }
-
-      .portrait .eye {
-        position: absolute;
-        width: 11px;
-        height: 11px;
-        background: rgba(0,0,0,0.8);
-        border-radius: 50%;
-        top: 153px;
-        left: 185px;
-      }
-
-      .portrait .eye.right {
-        left: 245px;
-      }
-
-      .portrait .smile {
-        position: absolute;
-        width: 54px;
-        height: 30px;
-        border-bottom: 4px solid rgba(0,0,0,0.8);
-        border-radius: 0 0 40px 40px;
-        top: 196px;
-        left: 196px;
-      }
-
-      .portrait .neck {
-        position: absolute;
-        width: 30px;
-        height: 28px;
-        background: #f0eae2;
-        border: 3px solid rgba(0,0,0,0.8);
-        top: 230px;
-        left: 210px;
-        z-index: 1;
-      }
-
-      .portrait .shirt {
-        position: absolute;
-        width: 170px;
-        height: 150px;
-        background: #dfeaf1;
-        border: 3px solid rgba(0,0,0,0.8);
-        border-radius: 18px 18px 12px 12px;
-        top: 242px;
-        left: 142px;
-      }
-
-      .portrait .shirt::before,
-      .portrait .shirt::after {
-        content: "";
-        position: absolute;
-        width: 60px;
-        height: 115px;
-        border: 3px solid rgba(0,0,0,0.8);
-        background: rgba(0,0,0,0);
-        top: 18px;
-      }
-
-      .portrait .shirt::before {
-        left: -18px;
-        transform: rotate(18deg);
-        border-right: none;
-      }
-
-      .portrait .shirt::after {
-        right: -18px;
-        transform: rotate(-18deg);
-        border-left: none;
-      }
-
-      .portrait .arm {
-        position: absolute;
-        width: 118px;
-        height: 22px;
-        border: 3px solid rgba(0,0,0,0.8);
-        background: #f4f1eb;
-        border-radius: 18px;
-        top: 274px;
-        left: 265px;
-        transform: rotate(12deg);
-      }
-
-      .portrait .arm.right {
-        left: 118px;
-        transform: rotate(-20deg);
-      }
-
-      .portrait .laptop {
-        position: absolute;
-        width: 135px;
-        height: 90px;
-        border: 3px solid rgba(0,0,0,0.8);
-        background: rgba(255,255,255,0.12);
-        top: 248px;
-        left: 246px;
-        border-radius: 8px;
-        transform: rotate(12deg);
-      }
-
-      .portrait .laptop::before {
-        content: "";
-        position: absolute;
-        width: 118px;
-        height: 10px;
-        background: rgba(0,0,0,0.1);
-        border-radius: 12px;
-        bottom: -12px;
-        left: 8px;
-      }
-
-      .portrait .laptop::after {
-        content: "";
-        position: absolute;
-        width: 80px;
-        height: 18px;
-        border: 3px solid rgba(0,0,0,0.8);
-        border-top: none;
-        background: rgba(0,0,0,0.04);
-        bottom: -30px;
-        left: 28px;
-      }
-
-      .profile-card {
-        margin-top: 16px;
-        width: min(100%, 430px);
-        margin-left: auto;
-        border: 2px solid rgba(0, 0, 0, 0.7);
-        background: rgba(255,255,255,0.06);
-        border-radius: 8px;
-        padding: 24px 20px 18px;
-      }
-
-      .card-title {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 10px;
-      }
-
-      .card-title h3 {
-        margin: 0;
-        font-size: clamp(1.2rem, 1.7vw, 2rem);
-        font-weight: 500;
-        letter-spacing: -0.04em;
-      }
-
-      .stats {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 8px 12px;
-        margin-top: 10px;
-        font-size: clamp(0.95rem, 1.2vw, 1.25rem);
-        line-height: 1.8;
-      }
-
-      .stats .value {
-        font-weight: 500;
-        color: #1d1d1d;
-      }
-
-      .donut-wrap {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 130px;
-      }
-
-      .donut {
-        --ring: 58%;
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        background: conic-gradient(#d95d5d 0 70%, #efe8e0 70% 100%);
-        position: relative;
-        box-shadow: inset 0 0 0 2px rgba(0,0,0,0.7);
-      }
-
-      .donut::before {
-        content: "";
-        position: absolute;
-        inset: 14px;
-        background: rgba(227, 223, 216, 0.9);
-        border-radius: 50%;
-        border: 2px solid rgba(0,0,0,0.7);
-      }
-
-      .donut::after {
-        content: "C+";
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        font-size: 2rem;
-        letter-spacing: -0.06em;
-        color: #2a2a2a;
-        font-weight: 500;
-      }
-
-      .mini-bars {
-        margin-top: 18px;
-        display: flex;
-        justify-content: center;
-        gap: 18px;
-        border-top: 2px solid rgba(0,0,0,0.2);
-        padding-top: 10px;
-      }
-
-      .bar-group {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        min-width: 80px;
-      }
-
-      .bar {
-        width: 14px;
-        border-radius: 5px 5px 0 0;
-        background: #d95d5d;
-        border: 2px solid rgba(0,0,0,0.7);
-        border-bottom: none;
-        position: relative;
-      }
-
-      .bar:nth-child(1) { height: 30px; }
-      .bar:nth-child(2) { height: 48px; }
-      .bar:nth-child(3) { height: 58px; }
-
-      .bar-group .label {
-        margin: 0;
-        font-size: 0.9rem;
-        color: var(--muted);
-      }
-
-      .arc {
-        width: 26px;
-        height: 26px;
-        border: 3px solid rgba(0,0,0,0.8);
-        border-color: rgba(0,0,0,0.8) transparent transparent rgba(0,0,0,0.8);
-        border-radius: 50%;
-        transform: rotate(25deg);
-        background: transparent;
-      }
-
-      @media (max-width: 940px) {
-        .page {
-          grid-template-columns: 1fr;
-          gap: 30px;
-        }
-
-        .portrait-frame,
-        .profile-card {
-          margin-left: 0;
-        }
-
-        .right {
-          order: 1;
-        }
-      }
-
-      @media (max-width: 560px) {
-        body {
-          padding: 28px 16px 40px;
-        }
-
-        .lead {
-          max-width: 100%;
-        }
-
-        .projects li {
-          line-height: 1.6;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <main class="page">
-      <section class="left">
-        <h1>
-          Sanjida
-          <span class="sigil" aria-hidden="true"></span>
-        </h1>
-        <div class="subtitle">Student • Dhaka.</div>
-
-        <p class="lead">
-          I speak with purpose, think critically, and turn ideas into confident voices.
+  <!-- Modal 2: Hall of Achievements -->
+  <div class="modal-overlay" id="modal-achievements" onclick="handleBackdropClick(event, 'modal-achievements')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge" style="color: var(--gold); border-color: var(--gold); background: rgba(255,183,3,0.1);">Trophy Vault</span>
+          <h2 class="modal-title">Hall of Achievements</h2>
+        </div>
+        <button class="close-btn" onclick="closeModal('modal-achievements')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--text-muted);">
+          Key milestones earned through rigorous debating tournaments, speech championships, and competitive writing across national and regional arenas.
         </p>
 
-        <div class="section">
-          <span class="label">experience</span>
-          <ul class="list">
-            <li><span class="muted">TV Debate Competition</span> — 2nd place, 2024</li>
-            <li><span class="muted">School Debate Club</span> — Public speaking and critical thinking, 2023–2025</li>
-          </ul>
-        </div>
+        <div class="achievement-grid">
+          <!-- Achievement 1 -->
+          <div class="achievement-card" onclick="openAchievementDetail(1)">
+            <div class="achieve-rank">🏆 National Television Stage</div>
+            <div class="achieve-name">2nd Runner Up — BTV Debate Competition</div>
+            <div class="achieve-desc">Secured 2nd runner up on the prestigious Bangladesh Television (BTV) national debate platform.</div>
+            <div class="achieve-slot">
+              <span>Year: 2024</span>
+              <span>📸 Image Ready</span>
+            </div>
+          </div>
 
-        <div class="section projects">
-          <span class="label">achievements</span>
-          <ul class="list projects">
-            <li><span class="title">2nd Place</span> — TV Debate Competition, 2024</li>
-            <li><span class="title">Active Speaker</span> — School debate and discussion events, 2023–2025</li>
-            <li><span class="title">Leadership</span> — Team presentations and public communication, 2024–2025</li>
-            <li><span class="title">Critical Thinking</span> — Research-driven participation in discussions, 2025</li>
-          </ul>
-        </div>
-      </section>
+          <!-- Achievement 2 -->
+          <div class="achievement-card" onclick="openAchievementDetail(2)">
+            <div class="achieve-rank">✍️ Literary Excellence</div>
+            <div class="achieve-name">2nd Place — Inter Cantonment Essay Writing</div>
+            <div class="achieve-desc">Awarded 2nd position among top participating institutions across the Inter Cantonment Essay Writing Competition.</div>
+            <div class="achieve-slot">
+              <span>Category: Essay</span>
+              <span>📸 Image Ready</span>
+            </div>
+          </div>
 
-      <aside class="right">
-        <div class="portrait-frame">
-          <div class="portrait" aria-hidden="true">
-            <div class="hair"></div>
-            <div class="ear"></div>
-            <div class="ear right"></div>
-            <div class="head"></div>
-            <div class="eye"></div>
-            <div class="eye right"></div>
-            <div class="smile"></div>
-            <div class="neck"></div>
-            <div class="shirt"></div>
-            <div class="arm"></div>
-            <div class="arm right"></div>
-            <div class="laptop"></div>
+          <!-- Achievement 3 -->
+          <div class="achievement-card" onclick="openAchievementDetail(3)">
+            <div class="achieve-rank">🥇 Regional Champion</div>
+            <div class="achieve-name">1st in Dhaka Region for Public Speaking</div>
+            <div class="achieve-desc">Ranked 1st place champion in Dhaka region, demonstrating supreme stage presence, diction, and vocal mastery.</div>
+            <div class="achieve-slot">
+              <span>Rank: 1st Place</span>
+              <span>📸 Image Ready</span>
+            </div>
+          </div>
+
+          <!-- Achievement 4 -->
+          <div class="achievement-card" onclick="openAchievementDetail(4)">
+            <div class="achieve-rank">🌟 Language Virtuoso</div>
+            <div class="achieve-name">Best Speaker in Language Skill Category</div>
+            <div class="achieve-desc">Honored with Best Speaker distinction in Language Skill category at the renowned JUDU National Debate Fest.</div>
+            <div class="achieve-slot">
+              <span>Event: JUDU Fest</span>
+              <span>📸 Image Ready</span>
+            </div>
+          </div>
+
+          <!-- Achievement 5 -->
+          <div class="achievement-card" onclick="openAchievementDetail(5)">
+            <div class="achieve-rank">👑 Double Crown</div>
+            <div class="achieve-name">Regional Champion & Best Speaker</div>
+            <div class="achieve-desc">Crowned both Regional Champion and Best Speaker in the Inter Cantonment Debate Competition.</div>
+            <div class="achieve-slot">
+              <span>Tournament: Inter Cant.</span>
+              <span>📸 Image Ready</span>
+            </div>
+          </div>
+
+          <!-- Achievement 6 -->
+          <div class="achievement-card" onclick="openAchievementDetail(6)">
+            <div class="achieve-rank">🏛️ Council Leadership</div>
+            <div class="achieve-name">House Prefect — Jaynul Abedin House (2024)</div>
+            <div class="achieve-desc">Appointed House Prefect at Sena Public School and College in 2024, steering student morale and governance.</div>
+            <div class="achieve-slot">
+              <span>Role: House Prefect</span>
+              <span>📸 Image Ready</span>
+            </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="profile-card">
-          <div class="card-title">
-            <h3>Sanjida's Highlights</h3>
-          </div>
-
-          <div class="stats">
-            <div>Debate wins:</div>
-            <div class="value">2</div>
-
-            <div>Competitions:</div>
-            <div class="value">5</div>
-
-            <div>Public speaking:</div>
-            <div class="value">Strong</div>
-
-            <div>Best achievement:</div>
-            <div class="value">2nd place</div>
-
-            <div>Focus:</div>
-            <div class="value">Leadership</div>
-          </div>
-
-          <div class="donut-wrap">
-            <div class="donut" aria-label="Achievement rating"></div>
+  <!-- Modal 3: Single Achievement Spotlight with Photo Slot -->
+  <div class="modal-overlay" id="modal-achieve-spotlight" onclick="handleBackdropClick(event, 'modal-achieve-spotlight')">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge" id="spotlight-badge">Milestone</span>
+          <h2 class="modal-title" id="spotlight-title" style="font-size: 1.3rem;">Achievement Spotlight</h2>
+        </div>
+        <button class="close-btn" onclick="closeModal('modal-achieve-spotlight')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="image-showcase-frame" id="spotlight-frame">
+          <img id="spotlight-img-preview" src="" alt="Achievement Certificate/Trophy" />
+          <div class="image-placeholder-content" id="spotlight-img-placeholder">
+            <div class="image-placeholder-icon" id="spotlight-icon">🏆</div>
+            <div class="image-placeholder-label" id="spotlight-img-label">Certificate / Photo Space</div>
+            <p class="image-placeholder-sub">Add certificate, trophy photo, or stage moment.</p>
+            <button class="upload-trigger-btn" onclick="openImageUploader('spotlight-img-preview', 'spotlight-img-placeholder')">📷 Upload Image Preview</button>
           </div>
         </div>
+        <div>
+          <p id="spotlight-desc" style="font-size: 0.95rem; color: #e2e8f0; line-height: 1.6;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="mini-bars" aria-label="Contribution bars">
-          <div class="bar-group">
-            <div class="bar"></div>
-            <div class="label">3</div>
+  <!-- Modal 4: Leadership & Experience -->
+  <div class="modal-overlay" id="modal-leadership" onclick="handleBackdropClick(event, 'modal-leadership')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge" style="color: var(--purple); border-color: var(--purple);">Governance & Service</span>
+          <h2 class="modal-title">Leadership & Experience</h2>
+        </div>
+        <button class="close-btn" onclick="closeModal('modal-leadership')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2col">
+          <div class="timeline">
+            <!-- Item 1 -->
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-title">House Prefect — Jaynul Abedin House</div>
+              <div class="timeline-sub">Sena Public School and College • 2024</div>
+              <p class="timeline-text">
+                Elected and entrusted with commanding the Jaynul Abedin House. Orchestrated inter-house athletic and cultural contingents, spearheaded team discipline, and represented the student body at administrative councils.
+              </p>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-title">Lead Debater & Public Speaker</div>
+              <div class="timeline-sub">School Debate Club & Regional Circuits • 2023–2025</div>
+              <p class="timeline-text">
+                Represented the institution across national and regional circuits including BTV, JUDU National Debate Fest, and Inter Cantonment tournaments, consistently securing Best Speaker and top podium placements.
+              </p>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-title">Essayist & Research Writer</div>
+              <div class="timeline-sub">Inter Cantonment Literary Forums • 2023–2024</div>
+              <p class="timeline-text">
+                Authored structured analytical essays and literary pieces, earning 2nd position in Inter Cantonment competitions through coherent argumentation and creative narrative style.
+              </p>
+            </div>
           </div>
-          <div class="bar-group">
-            <div class="bar"></div>
-            <div class="label">3</div>
-          </div>
-          <div class="bar-group">
-            <div class="bar"></div>
-            <div class="label">5</div>
+
+          <!-- Right column: Leadership Photo & Highlights -->
+          <div>
+            <div class="image-showcase-frame">
+              <img id="leadership-img-preview" src="" alt="House Prefect Badge / School Photo" />
+              <div class="image-placeholder-content" id="leadership-img-placeholder">
+                <div class="image-placeholder-icon">🎖️</div>
+                <div class="image-placeholder-label">House Prefect / Event Photo</div>
+                <p class="image-placeholder-sub">Spot for House Prefect investiture or debate team group photo.</p>
+                <button class="upload-trigger-btn" onclick="openImageUploader('leadership-img-preview', 'leadership-img-placeholder')">📷 Upload Leadership Photo</button>
+              </div>
+            </div>
+
+            <div style="margin-top: 18px; background: rgba(157,78,221,0.06); border: 1px solid var(--purple); border-radius: 14px; padding: 16px;">
+              <h4 style="font-family: var(--font-display); font-size: 0.8rem; color: var(--purple); margin-bottom: 8px;">LEADERSHIP IMPACT</h4>
+              <ul style="font-size: 0.82rem; color: var(--text-muted); list-style: none; display: flex; flex-direction: column; gap: 8px;">
+                <li>⚡ <strong>Team Coordination:</strong> Mentored junior debaters in rhetoric and speech construction.</li>
+                <li>⚡ <strong>Event Logistics:</strong> Coordinated house participants for annual sports & cultural fest.</li>
+                <li>⚡ <strong>Conflict Resolution:</strong> Maintained high house morale and teamwork excellence.</li>
+              </ul>
+            </div>
           </div>
         </div>
-      </aside>
-    </main>
-  </body>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Skill Matrix -->
+  <div class="modal-overlay" id="modal-skills" onclick="handleBackdropClick(event, 'modal-skills')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">Competency Matrix</span>
+          <h2 class="modal-title">Skills & Attributes</h2>
+        </div>
+        <button class="close-btn" onclick="closeModal('modal-skills')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2col">
+          <!-- Column 1 -->
+          <div>
+            <div class="skill-row">
+              <div class="skill-meta">
+                <span>🎙️ Parliamentary & TV Debate</span>
+                <span style="color: var(--cyan);">98%</span>
+              </div>
+              <div class="skill-bar-wrap">
+                <div class="skill-bar-progress" style="width: 98%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-row">
+              <div class="skill-meta">
+                <span>🗣️ Public Speaking & Diction</span>
+                <span style="color: var(--cyan);">96%</span>
+              </div>
+              <div class="skill-bar-wrap">
+                <div class="skill-bar-progress" style="width: 96%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-row">
+              <div class="skill-meta">
+                <span>⚡ Rapid Rebuttal & Logic Construction</span>
+                <span style="color: var(--cyan);">94%</span>
+              </div>
+              <div class="skill-bar-wrap">
+                <div class="skill-bar-progress" style="width: 94%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2 -->
+          <div>
+            <div class="skill-row">
+              <div class="skill-meta">
+                <span>✍️ Analytical Essay & Research Writing</span>
+                <span style="color: var(--purple);">92%</span>
+              </div>
+              <div class="skill-bar-wrap">
+                <div class="skill-bar-progress" style="width: 92%; background: linear-gradient(90deg, var(--purple), var(--pink));"></div>
+              </div>
+            </div>
+
+            <div class="skill-row">
+              <div class="skill-meta">
+                <span>🏛️ Student Council & House Governance</span>
+                <span style="color: var(--purple);">95%</span>
+              </div>
+              <div class="skill-bar-wrap">
+                <div class="skill-bar-progress" style="width: 95%; background: linear-gradient(90deg, var(--purple), var(--pink));"></div>
+              </div>
+            </div>
+
+            <div class="skill-row">
+              <div class="skill-meta">
+                <span>🌟 Stage Presence & Persuasion</span>
+                <span style="color: var(--purple);">97%</span>
+              </div>
+              <div class="skill-bar-wrap">
+                <div class="skill-bar-progress" style="width: 97%; background: linear-gradient(90deg, var(--purple), var(--pink));"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Image Vault & Gallery -->
+  <div class="modal-overlay" id="modal-gallery" onclick="handleBackdropClick(event, 'modal-gallery')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">Media Vault</span>
+          <h2 class="modal-title">Photo Gallery & Highlights</h2>
+        </div>
+        <button class="close-btn" onclick="closeModal('modal-gallery')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--text-muted);">
+          Dedicated visual spaces designed for adding debate stage photos, award ceremonies, certificates, and campus memories.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+          <!-- Gallery Frame 1 -->
+          <div class="image-showcase-frame">
+            <img id="gal-1-img" src="" alt="Debate Stage Photo" />
+            <div class="image-placeholder-content" id="gal-1-holder">
+              <div class="image-placeholder-icon">🎤</div>
+              <div class="image-placeholder-label">Debate Stage Moment</div>
+              <p class="image-placeholder-sub">BTV or JUDU debate floor action.</p>
+              <button class="upload-trigger-btn" onclick="openImageUploader('gal-1-img', 'gal-1-holder')">📷 Add Photo</button>
+            </div>
+          </div>
+
+          <!-- Gallery Frame 2 -->
+          <div class="image-showcase-frame">
+            <img id="gal-2-img" src="" alt="Award Receiving Moment" />
+            <div class="image-placeholder-content" id="gal-2-holder">
+              <div class="image-placeholder-icon">🏆</div>
+              <div class="image-placeholder-label">Award & Trophy Presentation</div>
+              <p class="image-placeholder-sub">Inter Cantonment or Regional prize ceremony.</p>
+              <button class="upload-trigger-btn" onclick="openImageUploader('gal-2-img', 'gal-2-holder')">📷 Add Photo</button>
+            </div>
+          </div>
+
+          <!-- Gallery Frame 3 -->
+          <div class="image-showcase-frame">
+            <img id="gal-3-img" src="" alt="House Prefect Investiture" />
+            <div class="image-placeholder-content" id="gal-3-holder">
+              <div class="image-placeholder-icon">🎖️</div>
+              <div class="image-placeholder-label">House Prefect Sash / Council</div>
+              <p class="image-placeholder-sub">Jaynul Abedin House badge or event.</p>
+              <button class="upload-trigger-btn" onclick="openImageUploader('gal-3-img', 'gal-3-holder')">📷 Add Photo</button>
+            </div>
+          </div>
+
+          <!-- Gallery Frame 4 -->
+          <div class="image-showcase-frame">
+            <img id="gal-4-img" src="" alt="Writing / Certificate" />
+            <div class="image-placeholder-content" id="gal-4-holder">
+              <div class="image-placeholder-icon">📜</div>
+              <div class="image-placeholder-label">Essay / Certificate Showcase</div>
+              <p class="image-placeholder-sub">Certificate of merit or publication.</p>
+              <button class="upload-trigger-btn" onclick="openImageUploader('gal-4-img', 'gal-4-holder')">📷 Add Photo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 7: Contact & Transmission -->
+  <div class="modal-overlay" id="modal-contact" onclick="handleBackdropClick(event, 'modal-contact')">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">Uplink</span>
+          <h2 class="modal-title">Send a Transmission</h2>
+        </div>
+        <button class="close-btn" onclick="closeModal('modal-contact')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="contact-card-box">
+          <input type="text" class="contact-input" placeholder="Your Name / Organization" id="contact-name" />
+          <input type="email" class="contact-input" placeholder="Your Email Address" id="contact-email" />
+          <textarea class="contact-input" placeholder="Your Message or Speaking Invitation..." id="contact-msg"></textarea>
+          <button class="send-btn" onclick="sendTransmission()">
+            <span>Transmit Message</span> 📡
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 8: Help & Game Guide -->
+  <div class="modal-overlay" id="modal-help" onclick="handleBackdropClick(event, 'modal-help')">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">Manual</span>
+          <h2 class="modal-title">Navigator's Guide</h2>
+        </div>
+        <button class="close-btn" onclick="closeModal('modal-help')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.88rem; color: #cbd5e1; line-height: 1.6;">
+          <div>🎮 <strong>Keyboard Controls:</strong> Use <strong>W, A, S, D</strong> or <strong>Arrow keys</strong> to move your cyber drone. Press <strong>Spacebar</strong> to jump and trigger vertical thrust.</div>
+          <div>🖱️ <strong>Mouse & Camera:</strong> Left-click + drag to rotate the 3D perspective. Right-click or scroll wheel to zoom. Click directly on floating monoliths to fast-travel to them!</div>
+          <div>📱 <strong>Touchscreen:</strong> Use the virtual analog joystick on the bottom-left to navigate and tap action buttons.</div>
+          <div>🚀 <strong>Fast Travel Dock:</strong> Use the bottom dock to instantly warp to any milestone or chapter.</div>
+          <div>📸 <strong>Photo Customization:</strong> Click any "Upload / Change Photo" button to preview your actual photos in real time!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= START GAME / INTRO OVERLAY ================= -->
+  <div id="start-screen">
+    <div class="start-content">
+      <div class="start-badge">Interactive 3D Portfolio Realm</div>
+      <h1 class="start-title">Sanjida Islam Maisha</h1>
+      <p class="start-subtitle">
+        Enter a gamified 3D cyber world celebrating debating championships, public speaking victories, and student council leadership.
+      </p>
+
+      <button class="play-btn" onclick="startGame()">
+        <span>ENTER WORLD</span> 🚀
+      </button>
+
+      <div class="guide-tags">
+        <span class="guide-tag">WASD to Move</span>
+        <span class="guide-tag">Interactive Monoliths</span>
+        <span class="guide-tag">3D Trophies</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= THREE.JS JAVASCRIPT LOGIC ================= -->
+  <script>
+    /* ==========================================================
+       DATA STRUCTURE: ACHIEVEMENTS & LANDMARKS
+       ========================================================== */
+    const PORTFOLIO_DATA = {
+      name: "Sanjida Islam Maisha",
+      title: "Debater • Public Speaker • Writer • House Prefect (2024)",
+      institution: "Sena Public School and College",
+      achievements: [
+        {
+          id: 1,
+          badge: "Television Debate",
+          icon: "📺",
+          title: "2nd Runner Up — BTV Debate Competition",
+          desc: "Delivered compelling, logically fortified speeches on the national Bangladesh Television (BTV) stage against top institutional contenders.",
+          year: "2024",
+          tag: "Debate"
+        },
+        {
+          id: 2,
+          badge: "Writing Distinction",
+          icon: "✍️",
+          title: "2nd in Inter Cantonment Essay Writing Competition",
+          desc: "Recognized for exemplary creative prose, cohesive argumentation, and deep analytical perspective across cantonment colleges.",
+          year: "2024",
+          tag: "Writing"
+        },
+        {
+          id: 3,
+          badge: "Public Speaking",
+          icon: "🥇",
+          title: "1st in Dhaka Region for Public Speaking",
+          desc: "Captured 1st Place Regional Championship in Dhaka, demonstrating masterful vocal modulation, stage presence, and rhetoric.",
+          year: "2023-2024",
+          tag: "Speaking"
+        },
+        {
+          id: 4,
+          badge: "Language Virtuoso",
+          icon: "🌟",
+          title: "Best Speaker in Language Skill Category",
+          desc: "Awarded Best Speaker honors in Language Skill Category at the renowned JUDU National Debate Fest, proving pristine diction and persuasion.",
+          year: "2024",
+          tag: "Debate Fest"
+        },
+        {
+          id: 5,
+          badge: "Double Crown",
+          icon: "👑",
+          title: "Regional Champion & Best Speaker in Inter Cantonment Debate Competition",
+          desc: "Secured both the regional team championship trophy and individual Best Speaker title at the prestigious Inter Cantonment Debate tournament.",
+          year: "2024",
+          tag: "Champion"
+        },
+        {
+          id: 6,
+          badge: "Student Council",
+          icon: "🏛️",
+          title: "House Prefect of Jaynul Abedin House (2024)",
+          desc: "Led the Jaynul Abedin House at Sena Public School and College in 2024, spearheading cultural, athletic, and academic delegations.",
+          year: "2024",
+          tag: "Leadership"
+        }
+      ]
+    };
+
+    /* ==========================================================
+       WEB AUDIO API SYNTHESIZER (NO EXTERNAL FILES REQUIRED)
+       ========================================================== */
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSynthSound(type) {
+      if (!soundEnabled || !audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'jump') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.exponentialRampToValueAtTime(660, now + 0.18);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        } else if (type === 'teleport') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.3);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'unlock') {
+          // Play fanfare chord
+          const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+          freqs.forEach((f, i) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(f, now + i * 0.08);
+            g.gain.setValueAtTime(0.15, now + i * 0.08);
+            g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.4);
+            o.start(now + i * 0.08);
+            o.stop(now + i * 0.08 + 0.45);
+          });
+        } else if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        }
+      } catch (e) {
+        console.log('Audio error:', e);
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btn-sound');
+      if (soundEnabled) {
+        btn.textContent = '🔊';
+        btn.classList.add('active');
+        initAudio();
+        showToast('Sound Effects', 'Audio is now Enabled', '🔊');
+      } else {
+        btn.textContent = '🔇';
+        btn.classList.remove('active');
+        showToast('Sound Effects', 'Audio is now Muted', '🔇');
+      }
+    }
+
+    /* ==========================================================
+       THREE.JS ENGINE & WORLD SETUP
+       ========================================================== */
+    let scene, camera, renderer, controls;
+    let player, playerVelocity = new THREE.Vector3();
+    let playerOnGround = true;
+    let landmarks = [];
+    let discoveredZones = new Set();
+    let nearbyZone = null;
+    let cameraMode = 'follow'; // 'follow' | 'orbit'
+    let animatedMeshes = [];
+
+    // Keys State
+    const keys = {
+      forward: false,
+      backward: false,
+      left: false,
+      right: false,
+      jump: false,
+      sprint: false
+    };
+
+    // Virtual Joystick State
+    let joystickActive = false;
+    let joystickVector = { x: 0, y: 0 };
+
+    // Zone Definitions
+    const ZONES = {
+      bio: {
+        name: "Identity Core",
+        modal: "modal-bio",
+        pos: new THREE.Vector3(0, 0, 0),
+        color: 0x00f2fe,
+        badge: "Who I Am"
+      },
+      achievements: {
+        name: "Hall of Achievements",
+        modal: "modal-achievements",
+        pos: new THREE.Vector3(0, 0, -32),
+        color: 0xffb703,
+        badge: "6 Key Honors"
+      },
+      leadership: {
+        name: "Leadership & House",
+        modal: "modal-leadership",
+        pos: new THREE.Vector3(32, 0, 0),
+        color: 0x9d4edd,
+        badge: "House Prefect"
+      },
+      skills: {
+        name: "Skill Matrix",
+        modal: "modal-skills",
+        pos: new THREE.Vector3(-32, 0, 0),
+        color: 0x00f2fe,
+        badge: "Stats & Attributes"
+      },
+      gallery: {
+        name: "Image Vault",
+        modal: "modal-gallery",
+        pos: new THREE.Vector3(22, 0, 22),
+        color: 0xff2a85,
+        badge: "Photo Slots"
+      },
+      contact: {
+        name: "Transmission Uplink",
+        modal: "modal-contact",
+        pos: new THREE.Vector3(-22, 0, 22),
+        color: 0x00f2fe,
+        badge: "Connect"
+      }
+    };
+
+    function init3DWorld() {
+      const canvas = document.getElementById('webgl-canvas');
+      
+      // Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x070914);
+      scene.fog = new THREE.FogExp2(0x070914, 0.015);
+
+      // Camera
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 15, 25);
+
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      // Orbit Controls
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 - 0.05; // Don't go below ground
+      controls.minDistance = 5;
+      controls.maxDistance = 85;
+      controls.enabled = false; // Enabled in 'orbit' mode
+
+      // Lighting
+      setupLighting();
+
+      // Environment & Arena
+      buildCyberArena();
+
+      // Landmarks & Monuments
+      buildMonuments();
+
+      // Player Avatar
+      createPlayerAvatar();
+
+      // Cosmic Particle Starfield
+      createStarfield();
+
+      // Event Listeners
+      window.addEventListener('resize', onWindowResize);
+      window.addEventListener('keydown', onKeyDown);
+      window.addEventListener('keyup', onKeyUp);
+      canvas.addEventListener('pointerdown', onCanvasClick);
+
+      // Setup Mobile Touch Joystick
+      setupTouchControls();
+
+      // Render Loop
+      animate();
+    }
+
+    /* Lighting Setup */
+    function setupLighting() {
+      const ambientLight = new THREE.AmbientLight(0x223355, 1.2);
+      scene.add(ambientLight);
+
+      const sunLight = new THREE.DirectionalLight(0xaad4ff, 1.4);
+      sunLight.position.set(30, 50, 20);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.near = 0.5;
+      sunLight.shadow.camera.far = 150;
+      sunLight.shadow.camera.left = -50;
+      sunLight.shadow.camera.right = 50;
+      sunLight.shadow.camera.top = 50;
+      sunLight.shadow.camera.bottom = -50;
+      sunLight.shadow.bias = -0.0005;
+      scene.add(sunLight);
+
+      // Glowing Colored Point Lights at Zones
+      const lightBio = new THREE.PointLight(0x00f2fe, 3, 25);
+      lightBio.position.set(0, 5, 0);
+      scene.add(lightBio);
+
+      const lightAchieve = new THREE.PointLight(0xffb703, 3.5, 35);
+      lightAchieve.position.set(0, 6, -32);
+      scene.add(lightAchieve);
+
+      const lightLead = new THREE.PointLight(0x9d4edd, 3, 30);
+      lightLead.position.set(32, 6, 0);
+      scene.add(lightLead);
+
+      const lightSkill = new THREE.PointLight(0x00f2fe, 3, 30);
+      lightSkill.position.set(-32, 6, 0);
+      scene.add(lightSkill);
+    }
+
+    /* Arena & Floor Grid */
+    function buildCyberArena() {
+      // Main Ground Disc
+      const groundGeo = new THREE.CylinderGeometry(52, 54, 2, 64);
+      const groundMat = new THREE.MeshStandardMaterial({
+        color: 0x0c1124,
+        roughness: 0.65,
+        metalness: 0.35
+      });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.position.y = -1;
+      ground.receiveShadow = true;
+      scene.add(ground);
+
+      // Glowing Outer Ring
+      const ringGeo = new THREE.TorusGeometry(52, 0.4, 16, 100);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = 0.05;
+      scene.add(ring);
+
+      // Glowing Grid Floor
+      const gridHelper = new THREE.GridHelper(100, 50, 0x00f2fe, 0x162447);
+      gridHelper.position.y = 0.02;
+      scene.add(gridHelper);
+
+      // Floating Cyber Pathway Rings between Zones
+      createPathRing(new THREE.Vector3(0, 0, -16), 0xffb703);
+      createPathRing(new THREE.Vector3(16, 0, 0), 0x9d4edd);
+      createPathRing(new THREE.Vector3(-16, 0, 0), 0x00f2fe);
+      createPathRing(new THREE.Vector3(11, 0, 11), 0xff2a85);
+      createPathRing(new THREE.Vector3(-11, 0, 11), 0x00f2fe);
+    }
+
+    function createPathRing(pos, color) {
+      const geo = new THREE.RingGeometry(2, 2.3, 32);
+      const mat = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.rotation.x = Math.PI / 2;
+      mesh.position.copy(pos);
+      mesh.position.y = 0.04;
+      scene.add(mesh);
+    }
+
+    /* Monuments & 3D Interactive Landmarks */
+    function buildMonuments() {
+      // 1. Bio Identity Core (Center)
+      buildBioMonolith();
+
+      // 2. Trophy Hall (North) - 6 Mini Trophies around Central Grand Cup
+      buildTrophyHall();
+
+      // 3. Leadership & House Monument (East)
+      buildLeadershipMonument();
+
+      // 4. Skill Matrix Polyhedron (West)
+      buildSkillMonument();
+
+      // 5. Gallery Photo Pedestals (South-East)
+      buildGalleryMonument();
+
+      // 6. Contact Satellite Beacon (South-West)
+      buildContactBeacon();
+    }
+
+    /* 1. Bio Monolith */
+    function buildBioMonolith() {
+      const group = new THREE.Group();
+      group.position.copy(ZONES.bio.pos);
+
+      // Base Pedestal
+      const baseGeo = new THREE.CylinderGeometry(4.5, 5, 0.8, 8);
+      const baseMat = new THREE.MeshStandardMaterial({ color: 0x111a36, roughness: 0.3, metalness: 0.8 });
+      const base = new THREE.Mesh(baseGeo, baseMat);
+      base.receiveShadow = true;
+      group.add(base);
+
+      // Central Floating Crystal
+      const crystalGeo = new THREE.OctahedronGeometry(1.6, 0);
+      const crystalMat = new THREE.MeshStandardMaterial({
+        color: 0x00f2fe,
+        emissive: 0x007799,
+        emissiveIntensity: 0.6,
+        roughness: 0.1,
+        metalness: 0.9,
+        transparent: true,
+        opacity: 0.9
+      });
+      const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+      crystal.position.y = 3.5;
+      crystal.castShadow = true;
+      group.add(crystal);
+
+      // Rotating Energy Rings
+      const ringGeo = new THREE.TorusGeometry(2.4, 0.08, 16, 64);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+      const ring1 = new THREE.Mesh(ringGeo, ringMat);
+      ring1.position.y = 3.5;
+      group.add(ring1);
+
+      const ring2 = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0x9d4edd }));
+      ring2.position.y = 3.5;
+      ring2.rotation.x = Math.PI / 3;
+      group.add(ring2);
+
+      // Floating 3D Text Tag
+      const tagSprite = createTextSprite("IDENTITY CORE\nSanjida Islam Maisha", "#00f2fe");
+      tagSprite.position.y = 6.2;
+      group.add(tagSprite);
+
+      scene.add(group);
+
+      landmarks.push({
+        zoneKey: 'bio',
+        mesh: crystal,
+        group: group,
+        pos: ZONES.bio.pos,
+        data: ZONES.bio
+      });
+
+      animatedMeshes.push({
+        update: (t) => {
+          crystal.rotation.y = t * 0.8;
+          crystal.rotation.x = Math.sin(t * 0.5) * 0.2;
+          crystal.position.y = 3.5 + Math.sin(t * 1.5) * 0.25;
+          ring1.rotation.z = t * 1.2;
+          ring2.rotation.y = t * 1.1;
+        }
+      });
+    }
+
+    /* 2. Trophy Hall */
+    function buildTrophyHall() {
+      const group = new THREE.Group();
+      group.position.copy(ZONES.achievements.pos);
+
+      // Base Platform
+      const baseGeo = new THREE.CylinderGeometry(8, 8.5, 0.8, 12);
+      const baseMat = new THREE.MeshStandardMaterial({ color: 0x161e3d, metalness: 0.7, roughness: 0.3 });
+      const base = new THREE.Mesh(baseGeo, baseMat);
+      group.add(base);
+
+      // Grand Center Trophy Cup
+      const cupGroup = new THREE.Group();
+      cupGroup.position.y = 2.5;
+
+      const cupBase = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.5, 0.6, 16), new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.9, roughness: 0.2 }));
+      const cupStem = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 1.2, 16), new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.9, roughness: 0.2 }));
+      cupStem.position.y = 0.8;
+      const cupBowl = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 0.6, 1.6, 16), new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.9, roughness: 0.2 }));
+      cupBowl.position.y = 1.8;
+      cupGroup.add(cupBase, cupStem, cupBowl);
+      group.add(cupGroup);
+
+      // 6 Rotating Satellite Honors
+      const subTrophies = [];
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2;
+        const rad = 5;
+        const subPed = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.9, 0.5, 8), new THREE.MeshStandardMaterial({ color: 0x222e54, metalness: 0.8 }));
+        subPed.position.set(Math.cos(angle) * rad, 0.5, Math.sin(angle) * rad);
+        group.add(subPed);
+
+        const subGem = new THREE.Mesh(new THREE.DodecahedronGeometry(0.45), new THREE.MeshStandardMaterial({
+          color: i === 0 ? 0xffb703 : (i === 2 ? 0x00f2fe : (i === 4 ? 0xff2a85 : 0x9d4edd)),
+          emissive: 0x332200,
+          metalness: 0.9,
+          roughness: 0.1
+        }));
+        subGem.position.set(Math.cos(angle) * rad, 1.6, Math.sin(angle) * rad);
+        group.add(subGem);
+        subTrophies.push({ mesh: subGem, baseY: 1.6, angle });
+      }
+
+      // Title Tag
+      const tagSprite = createTextSprite("HALL OF TROPHIES\n6 Key Championships", "#ffb703");
+      tagSprite.position.y = 7.5;
+      group.add(tagSprite);
+
+      scene.add(group);
+
+      landmarks.push({
+        zoneKey: 'achievements',
+        mesh: cupBowl,
+        group: group,
+        pos: ZONES.achievements.pos,
+        data: ZONES.achievements
+      });
+
+      animatedMeshes.push({
+        update: (t) => {
+          cupGroup.rotation.y = t * 0.6;
+          cupGroup.position.y = 2.5 + Math.sin(t * 2) * 0.2;
+          subTrophies.forEach((st, i) => {
+            st.mesh.rotation.y = t * 1.5 + i;
+            st.mesh.position.y = st.baseY + Math.sin(t * 2.5 + i) * 0.15;
+          });
+        }
+      });
+    }
+
+    /* 3. Leadership Monument */
+    function buildLeadershipMonument() {
+      const group = new THREE.Group();
+      group.position.copy(ZONES.leadership.pos);
+
+      // Base
+      const base = new THREE.Mesh(new THREE.BoxGeometry(7, 0.8, 7), new THREE.MeshStandardMaterial({ color: 0x1d1436, metalness: 0.7 }));
+      group.add(base);
+
+      // 4 Roman-Cyber Pillars
+      for (let x of [-2.4, 2.4]) {
+        for (let z of [-2.4, 2.4]) {
+          const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 4, 16), new THREE.MeshStandardMaterial({ color: 0x9d4edd, metalness: 0.6, roughness: 0.3 }));
+          pillar.position.set(x, 2, z);
+          group.add(pillar);
+        }
+      }
+
+      // Floating Council Crown / Crest
+      const crest = new THREE.Mesh(new THREE.TorusKnotGeometry(1, 0.3, 64, 16), new THREE.MeshStandardMaterial({
+        color: 0x9d4edd,
+        emissive: 0x4a148c,
+        emissiveIntensity: 0.5,
+        metalness: 0.9,
+        roughness: 0.2
+      }));
+      crest.position.y = 4.8;
+      group.add(crest);
+
+      const tagSprite = createTextSprite("LEADERSHIP ARENA\nHouse Prefect 2024", "#9d4edd");
+      tagSprite.position.y = 7.5;
+      group.add(tagSprite);
+
+      scene.add(group);
+
+      landmarks.push({
+        zoneKey: 'leadership',
+        mesh: crest,
+        group: group,
+        pos: ZONES.leadership.pos,
+        data: ZONES.leadership
+      });
+
+      animatedMeshes.push({
+        update: (t) => {
+          crest.rotation.y = t * 0.8;
+          crest.rotation.x = Math.sin(t * 0.6) * 0.3;
+          crest.position.y = 4.8 + Math.sin(t * 1.8) * 0.2;
+        }
+      });
+    }
+
+    /* 4. Skill Matrix Monument */
+    function buildSkillMonument() {
+      const group = new THREE.Group();
+      group.position.copy(ZONES.skills.pos);
+
+      // Base
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 5, 0.8, 6), new THREE.MeshStandardMaterial({ color: 0x0e2238, metalness: 0.8 }));
+      group.add(base);
+
+      // Floating Icosahedron Skill Core
+      const coreGeo = new THREE.IcosahedronGeometry(1.8, 1);
+      const coreMat = new THREE.MeshStandardMaterial({
+        color: 0x00f2fe,
+        emissive: 0x005577,
+        wireframe: true
+      });
+      const core = new THREE.Mesh(coreGeo, coreMat);
+      core.position.y = 3.8;
+      group.add(core);
+
+      const solidCore = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2, 0), new THREE.MeshStandardMaterial({
+        color: 0x00f2fe,
+        metalness: 0.9,
+        roughness: 0.1
+      }));
+      solidCore.position.y = 3.8;
+      group.add(solidCore);
+
+      const tagSprite = createTextSprite("SKILL MATRIX\nOratory • Logic • Debate", "#00f2fe");
+      tagSprite.position.y = 6.8;
+      group.add(tagSprite);
+
+      scene.add(group);
+
+      landmarks.push({
+        zoneKey: 'skills',
+        mesh: solidCore,
+        group: group,
+        pos: ZONES.skills.pos,
+        data: ZONES.skills
+      });
+
+      animatedMeshes.push({
+        update: (t) => {
+          core.rotation.y = -t * 0.6;
+          core.rotation.x = t * 0.4;
+          solidCore.rotation.y = t * 1.2;
+          core.position.y = 3.8 + Math.sin(t * 2) * 0.2;
+          solidCore.position.y = 3.8 + Math.sin(t * 2) * 0.2;
+        }
+      });
+    }
+
+    /* 5. Gallery Photo Pedestals */
+    function buildGalleryMonument() {
+      const group = new THREE.Group();
+      group.position.copy(ZONES.gallery.pos);
+
+      // Base
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 5, 0.8, 8), new THREE.MeshStandardMaterial({ color: 0x331427, metalness: 0.8 }));
+      group.add(base);
+
+      // 3 Floating Holographic Photo Frames in 3D
+      const frameGroup = new THREE.Group();
+      frameGroup.position.y = 3.2;
+
+      for (let i = 0; i < 3; i++) {
+        const frameMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(1.8, 2.2, 0.1),
+          new THREE.MeshStandardMaterial({ color: 0xff2a85, metalness: 0.8, roughness: 0.2 })
+        );
+        const angle = (i / 3) * Math.PI * 2;
+        frameMesh.position.set(Math.cos(angle) * 2, 0, Math.sin(angle) * 2);
+        frameMesh.rotation.y = -angle + Math.PI / 2;
+        frameGroup.add(frameMesh);
+      }
+      group.add(frameGroup);
+
+      const tagSprite = createTextSprite("IMAGE VAULT\nPhotos & Memories", "#ff2a85");
+      tagSprite.position.y = 6.5;
+      group.add(tagSprite);
+
+      scene.add(group);
+
+      landmarks.push({
+        zoneKey: 'gallery',
+        mesh: frameGroup,
+        group: group,
+        pos: ZONES.gallery.pos,
+        data: ZONES.gallery
+      });
+
+      animatedMeshes.push({
+        update: (t) => {
+          frameGroup.rotation.y = t * 0.5;
+          frameGroup.position.y = 3.2 + Math.sin(t * 1.6) * 0.2;
+        }
+      });
+    }
+
+    /* 6. Contact Transmission Uplink */
+    function buildContactBeacon() {
+      const group = new THREE.Group();
+      group.position.copy(ZONES.contact.pos);
+
+      // Base
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(4, 4.5, 0.8, 8), new THREE.MeshStandardMaterial({ color: 0x112936, metalness: 0.8 }));
+      group.add(base);
+
+      // Antenna Spire
+      const spire = new THREE.Mesh(new THREE.ConeGeometry(0.6, 5, 8), new THREE.MeshStandardMaterial({ color: 0x00f2fe, metalness: 0.9 }));
+      spire.position.y = 2.8;
+      group.add(spire);
+
+      // Pulsing Satellite Dish
+      const dish = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.12, 16, 32), new THREE.MeshBasicMaterial({ color: 0x00f2fe }));
+      dish.rotation.x = Math.PI / 4;
+      dish.position.y = 4.5;
+      group.add(dish);
+
+      const tagSprite = createTextSprite("TRANSMISSION\nGet in Touch", "#00f2fe");
+      tagSprite.position.y = 7.0;
+      group.add(tagSprite);
+
+      scene.add(group);
+
+      landmarks.push({
+        zoneKey: 'contact',
+        mesh: spire,
+        group: group,
+        pos: ZONES.contact.pos,
+        data: ZONES.contact
+      });
+
+      animatedMeshes.push({
+        update: (t) => {
+          dish.rotation.z = t * 1.5;
+          dish.scale.setScalar(1 + Math.sin(t * 4) * 0.08);
+        }
+      });
+    }
+
+    /* High DPI Canvas Text Sprites for 3D Landmarks */
+    function createTextSprite(text, colorHex) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = "rgba(13, 18, 36, 0.85)";
+      ctx.strokeStyle = colorHex;
+      ctx.lineWidth = 6;
+      roundRect(ctx, 16, 16, 480, 224, 28);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      const lines = text.split('\n');
+      if (lines.length === 1) {
+        ctx.fillStyle = colorHex;
+        ctx.font = 'bold 36px "Orbitron", sans-serif';
+        ctx.fillText(lines[0], 256, 128);
+      } else {
+        ctx.fillStyle = colorHex;
+        ctx.font = 'bold 34px "Orbitron", sans-serif';
+        ctx.fillText(lines[0], 256, 95);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '500 24px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(lines[1], 256, 155);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(5.5, 2.75, 1);
+      return sprite;
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    /* Cosmic Starfield */
+    function createStarfield() {
+      const starGeo = new THREE.BufferGeometry();
+      const count = 1200;
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+
+      for (let i = 0; i < count * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 400;
+        positions[i + 1] = Math.random() * 150 + 5;
+        positions[i + 2] = (Math.random() - 0.5) * 400;
+
+        // Colors (Cyan, Purple, Gold stars)
+        const randColor = Math.random();
+        if (randColor < 0.4) {
+          colors[i] = 0; colors[i+1] = 0.95; colors[i+2] = 1;
+        } else if (randColor < 0.7) {
+          colors[i] = 0.6; colors[i+1] = 0.3; colors[i+2] = 0.9;
+        } else {
+          colors[i] = 1; colors[i+1] = 0.8; colors[i+2] = 0.2;
+        }
+      }
+
+      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const starMat = new THREE.PointsMaterial({
+        size: 1.5,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8
+      });
+
+      const stars = new THREE.Points(starGeo, starMat);
+      scene.add(stars);
+
+      animatedMeshes.push({
+        update: (t) => {
+          stars.rotation.y = t * 0.02;
+        }
+      });
+    }
+
+    /* Player Avatar Mesh */
+    function createPlayerAvatar() {
+      player = new THREE.Group();
+      player.position.set(0, 1.2, 10);
+
+      // Sleek Cyber Drone Body
+      const bodyGeo = new THREE.SphereGeometry(0.7, 32, 16);
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: 0x1a264a,
+        metalness: 0.9,
+        roughness: 0.15
+      });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.castShadow = true;
+      player.add(body);
+
+      // Visor Glow
+      const visorGeo = new THREE.CylinderGeometry(0.68, 0.68, 0.25, 32, 1, false, 0, Math.PI);
+      const visorMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+      const visor = new THREE.Mesh(visorGeo, visorMat);
+      visor.rotation.y = Math.PI / 2;
+      visor.position.z = 0.1;
+      player.add(visor);
+
+      // Orbiting Energy Ring
+      const ringGeo = new THREE.TorusGeometry(1.1, 0.04, 16, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      player.add(ring);
+
+      // Jet Thruster Base
+      const jetGeo = new THREE.ConeGeometry(0.3, 0.5, 16);
+      const jetMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+      const jet = new THREE.Mesh(jetGeo, jetMat);
+      jet.position.y = -0.7;
+      jet.rotation.x = Math.PI;
+      player.add(jet);
+
+      // Ground Shadow
+      const shadowGeo = new THREE.CircleGeometry(0.8, 32);
+      const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.45 });
+      const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.y = -1.15;
+      player.add(shadow);
+
+      scene.add(player);
+    }
+
+    /* ==========================================================
+       GAMEPLAY PHYSICS & CONTROLS LOOP
+       ========================================================== */
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = Math.min(clock.getDelta(), 0.1);
+      const elapsedTime = clock.getElapsedTime();
+
+      // Update Animated 3D Meshes & Lights
+      animatedMeshes.forEach(item => item.update(elapsedTime));
+
+      // Player Movement Logic
+      updatePlayer(delta, elapsedTime);
+
+      // Camera Follow or Orbit Controls
+      updateCamera();
+
+      // Check Proximity to Landmarks & Quests
+      checkLandmarkProximity();
+
+      // Update Minimap Radar
+      drawMinimap();
+
+      // Render Scene
+      renderer.render(scene, camera);
+    }
+
+    function updatePlayer(delta, time) {
+      if (!player) return;
+
+      const moveSpeed = keys.sprint ? 18 : 11;
+      const moveDir = new THREE.Vector3();
+
+      // Keyboard input
+      if (keys.forward) moveDir.z -= 1;
+      if (keys.backward) moveDir.z += 1;
+      if (keys.left) moveDir.x -= 1;
+      if (keys.right) moveDir.x += 1;
+
+      // Virtual Joystick Input
+      if (joystickActive) {
+        moveDir.x += joystickVector.x;
+        moveDir.z += joystickVector.y;
+      }
+
+      if (moveDir.lengthSq() > 0.001) {
+        moveDir.normalize();
+
+        // Rotate movement relative to camera in follow mode
+        const angle = Math.atan2(moveDir.x, moveDir.z);
+        player.rotation.y = angle;
+
+        playerVelocity.x = moveDir.x * moveSpeed;
+        playerVelocity.z = moveDir.z * moveSpeed;
+      } else {
+        playerVelocity.x *= 0.85;
+        playerVelocity.z *= 0.85;
+      }
+
+      // Jump & Gravity
+      if (keys.jump && playerOnGround) {
+        playerVelocity.y = 12;
+        playerOnGround = false;
+        playSynthSound('jump');
+      }
+
+      // Gravity
+      playerVelocity.y -= 25 * delta;
+      player.position.y += playerVelocity.y * delta;
+
+      // Floor Collision
+      const groundLevel = 1.2;
+      if (player.position.y <= groundLevel) {
+        player.position.y = groundLevel;
+        playerVelocity.y = 0;
+        playerOnGround = true;
+      }
+
+      // Apply horizontal position
+      player.position.x += playerVelocity.x * delta;
+      player.position.z += playerVelocity.z * delta;
+
+      // Arena Boundary Clamp
+      const maxRadius = 48;
+      const distFromCenter = Math.sqrt(player.position.x * player.position.x + player.position.z * player.position.z);
+      if (distFromCenter > maxRadius) {
+        player.position.x = (player.position.x / distFromCenter) * maxRadius;
+        player.position.z = (player.position.z / distFromCenter) * maxRadius;
+      }
+
+      // Bobbing Hover Animation
+      if (playerOnGround) {
+        player.position.y = groundLevel + Math.sin(time * 6) * 0.1;
+      }
+    }
+
+    function updateCamera() {
+      if (cameraMode === 'follow') {
+        const targetCamPos = new THREE.Vector3(
+          player.position.x,
+          player.position.y + 7.5,
+          player.position.z + 13
+        );
+        camera.position.lerp(targetCamPos, 0.08);
+        camera.lookAt(player.position.x, player.position.y + 1.2, player.position.z);
+      } else {
+        controls.target.copy(player.position);
+        controls.update();
+      }
+    }
+
+    function checkLandmarkProximity() {
+      if (!player) return;
+
+      const interactBanner = document.getElementById('interact-banner');
+      const interactText = document.getElementById('interact-banner-text');
+
+      let foundNearby = null;
+      let minDistance = 7.0;
+
+      for (let lm of landmarks) {
+        const dist = player.position.distanceTo(lm.pos);
+        if (dist < minDistance) {
+          foundNearby = lm;
+          break;
+        }
+      }
+
+      if (foundNearby) {
+        nearbyZone = foundNearby;
+        interactText.textContent = `Inspect ${foundNearby.data.name} [E]`;
+        interactBanner.classList.add('visible');
+
+        // Unlock Quest Discovery
+        if (!discoveredZones.has(foundNearby.zoneKey)) {
+          discoveredZones.add(foundNearby.zoneKey);
+          onZoneDiscovered(foundNearby.data.name);
+        }
+      } else {
+        nearbyZone = null;
+        interactBanner.classList.remove('visible');
+      }
+    }
+
+    function onZoneDiscovered(zoneName) {
+      playSynthSound('unlock');
+      showToast('Landmark Discovered!', `You arrived at: ${zoneName}`, '🌟');
+
+      const count = discoveredZones.size;
+      const fillPercent = Math.min(100, Math.round((count / 6) * 100));
+      document.getElementById('quest-fill').style.width = `${fillPercent}%`;
+      document.getElementById('quest-text').textContent = `Discovered ${count}/6 Monoliths. (${fillPercent}% Complete)`;
+      
+      // Update XP
+      const xpFill = document.getElementById('hud-xp-bar');
+      xpFill.style.width = `${Math.min(100, 30 + count * 12)}%`;
+    }
+
+    /* Fast Travel Teleportation */
+    function teleportToZone(zoneKey) {
+      const zone = ZONES[zoneKey];
+      if (!zone || !player) return;
+
+      playSynthSound('teleport');
+      
+      // Animate player position smoothly or warp
+      player.position.set(zone.pos.x, 1.2, zone.pos.z + 5);
+      playerVelocity.set(0, 0, 0);
+
+      // Update Active Button in Dock
+      document.querySelectorAll('.dock-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.dock-btn')).find(b => b.textContent.includes(zone.name) || b.onclick.toString().includes(zoneKey));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      showToast('Warp Complete', `Teleported to ${zone.name}`, '🚀');
+
+      // Automatically open modal for convenience
+      setTimeout(() => {
+        openModal(zone.modal);
+      }, 400);
+    }
+
+    function triggerCurrentZoneInteraction() {
+      if (nearbyZone) {
+        playSynthSound('click');
+        openModal(nearbyZone.data.modal);
+      }
+    }
+
+    function triggerPlayerJump() {
+      keys.jump = true;
+      setTimeout(() => { keys.jump = false; }, 100);
+    }
+
+    /* Canvas Raycasting on Click to Teleport */
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function onCanvasClick(e) {
+      if (e.target.id !== 'webgl-canvas') return;
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const meshesToTest = landmarks.map(lm => lm.mesh);
+      const intersects = raycaster.intersectObjects(meshesToTest, true);
+
+      if (intersects.length > 0) {
+        const hit = intersects[0].object;
+        const matched = landmarks.find(lm => lm.mesh === hit || lm.group.getObjectById(hit.id));
+        if (matched) {
+          teleportToZone(matched.zoneKey);
+        }
+      }
+    }
+
+    /* Toggle Camera Mode */
+    function toggleCameraMode() {
+      const btn = document.getElementById('btn-camera-mode');
+      if (cameraMode === 'follow') {
+        cameraMode = 'orbit';
+        controls.enabled = true;
+        btn.innerHTML = '<span>🚀</span> <span class="btn-label">Follow Player</span>';
+        btn.classList.add('active');
+        showToast('Camera Mode', 'Free Orbit Controls Enabled (Drag to inspect)', '🎥');
+      } else {
+        cameraMode = 'follow';
+        controls.enabled = false;
+        btn.innerHTML = '<span>🎥</span> <span class="btn-label">Orbit View</span>';
+        btn.classList.remove('active');
+        showToast('Camera Mode', 'Third-Person Follow Mode Enabled', '🎥');
+      }
+    }
+
+    /* Minimap 2D Radar Canvas */
+    function drawMinimap() {
+      const canvas = document.getElementById('radar-canvas');
+      if (!canvas || !player) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const scale = w / 110; // 110 units arena mapped to 140px
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Radar Grid concentric rings
+      ctx.strokeStyle = 'rgba(0, 242, 254, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 25, 0, Math.PI * 2);
+      ctx.arc(cx, cy, 50, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Draw Landmarks Pins
+      landmarks.forEach(lm => {
+        const px = cx + lm.pos.x * scale;
+        const py = cy + lm.pos.z * scale;
+        ctx.fillStyle = '#' + lm.data.color.toString(16).padStart(6, '0');
+        ctx.beginPath();
+        ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // Draw Player Beacon
+      const px = cx + player.position.x * scale;
+      const py = cy + player.position.z * scale;
+
+      ctx.fillStyle = '#00ff88';
+      ctx.beginPath();
+      ctx.arc(px, py, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Heading indicator
+      const forwardX = Math.sin(player.rotation.y);
+      const forwardZ = Math.cos(player.rotation.y);
+      ctx.strokeStyle = '#00ff88';
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + forwardX * 8, py + forwardZ * 8);
+      ctx.stroke();
+    }
+
+    /* Keyboard Listeners */
+    function onKeyDown(e) {
+      if (['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) return;
+
+      switch (e.code) {
+        case 'KeyW':
+        case 'ArrowUp':
+          keys.forward = true;
+          break;
+        case 'KeyS':
+        case 'ArrowDown':
+          keys.backward = true;
+          break;
+        case 'KeyA':
+        case 'ArrowLeft':
+          keys.left = true;
+          break;
+        case 'KeyD':
+        case 'ArrowRight':
+          keys.right = true;
+          break;
+        case 'Space':
+          keys.jump = true;
+          e.preventDefault();
+          break;
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          keys.sprint = true;
+          break;
+        case 'KeyE':
+          triggerCurrentZoneInteraction();
+          break;
+        case 'Escape':
+          closeAllModals();
+          break;
+      }
+    }
+
+    function onKeyUp(e) {
+      switch (e.code) {
+        case 'KeyW':
+        case 'ArrowUp':
+          keys.forward = false;
+          break;
+        case 'KeyS':
+        case 'ArrowDown':
+          keys.backward = false;
+          break;
+        case 'KeyA':
+        case 'ArrowLeft':
+          keys.left = false;
+          break;
+        case 'KeyD':
+        case 'ArrowRight':
+          keys.right = false;
+          break;
+        case 'Space':
+          keys.jump = false;
+          break;
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          keys.sprint = false;
+          break;
+      }
+    }
+
+    /* Window Resize Handling */
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    /* Virtual Mobile Joystick */
+    function setupTouchControls() {
+      const container = document.getElementById('joystick-container');
+      const knob = document.getElementById('joystick-knob');
+      if (!container || !knob) return;
+
+      let rect = null;
+
+      function handleTouch(e) {
+        rect = container.getBoundingClientRect();
+        const touch = e.touches[0];
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        let dx = touch.clientX - centerX;
+        let dy = touch.clientY - centerY;
+        const maxDist = 35;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > maxDist) {
+          dx = (dx / dist) * maxDist;
+          dy = (dy / dist) * maxDist;
+        }
+
+        knob.style.transform = `translate(${dx}px, ${dy}px)`;
+        joystickVector.x = dx / maxDist;
+        joystickVector.y = dy / maxDist;
+        joystickActive = true;
+      }
+
+      container.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleTouch(e);
+      }, { passive: false });
+
+      container.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        handleTouch(e);
+      }, { passive: false });
+
+      container.addEventListener('touchend', () => {
+        knob.style.transform = `translate(0px, 0px)`;
+        joystickVector.x = 0;
+        joystickVector.y = 0;
+        joystickActive = false;
+      });
+    }
+
+    /* ==========================================================
+       MODAL & IMAGE UPLOADER HANDLERS
+       ========================================================== */
+    let currentImageTargetId = null;
+    let currentPlaceholderId = null;
+
+    function openModal(modalId) {
+      playSynthSound('click');
+      closeAllModals();
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('open');
+      }
+    }
+
+    function closeModal(modalId) {
+      playSynthSound('click');
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('open');
+      }
+    }
+
+    function closeAllModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+    }
+
+    function handleBackdropClick(e, modalId) {
+      if (e.target.id === modalId) {
+        closeModal(modalId);
+      }
+    }
+
+    function openAchievementDetail(achieveId) {
+      const item = PORTFOLIO_DATA.achievements.find(a => a.id === achieveId);
+      if (!item) return;
+
+      document.getElementById('spotlight-badge').textContent = item.badge;
+      document.getElementById('spotlight-title').textContent = item.title;
+      document.getElementById('spotlight-desc').textContent = item.desc;
+      document.getElementById('spotlight-icon').textContent = item.icon;
+      document.getElementById('spotlight-img-label').textContent = `${item.title} Photo Space`;
+
+      openModal('modal-achieve-spotlight');
+    }
+
+    function openImageUploader(targetImgId, placeholderId) {
+      currentImageTargetId = targetImgId;
+      currentPlaceholderId = placeholderId;
+      document.getElementById('image-upload-input').click();
+    }
+
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file || !currentImageTargetId) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.getElementById(currentImageTargetId);
+        const holder = document.getElementById(currentPlaceholderId);
+        if (img) {
+          img.src = e.target.result;
+          img.classList.add('active');
+        }
+        if (holder) {
+          holder.style.display = 'none';
+        }
+        showToast('Image Updated', 'Custom photo loaded into portfolio preview!', '📷');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function sendTransmission() {
+      const name = document.getElementById('contact-name').value.trim();
+      const email = document.getElementById('contact-email').value.trim();
+      const msg = document.getElementById('contact-msg').value.trim();
+
+      if (!name || !msg) {
+        showToast('Required Fields', 'Please enter your name and message.', '⚠️');
+        return;
+      }
+
+      playSynthSound('unlock');
+      showToast('Transmission Sent!', `Thank you ${name}, message delivered to Sanjida!`, '📡');
+      document.getElementById('contact-name').value = '';
+      document.getElementById('contact-email').value = '';
+      document.getElementById('contact-msg').value = '';
+      setTimeout(() => {
+        closeModal('modal-contact');
+      }, 1000);
+    }
+
+    function showToast(title, msg, icon = '✨') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-msg').textContent = msg;
+      document.getElementById('toast-icon').textContent = icon;
+
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    /* Start Game Entry */
+    function startGame() {
+      initAudio();
+      playSynthSound('unlock');
+      document.getElementById('start-screen').classList.add('hidden');
+      showToast('Welcome Navigator!', 'Use WASD to explore Sanjida\'s 3D World!', '🌟');
+    }
+
+    /* Initialize 3D on load */
+    window.addEventListener('DOMContentLoaded', () => {
+      init3DWorld();
+    });
+  </script>
+</body>
 </html>
