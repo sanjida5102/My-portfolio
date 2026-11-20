@@ -1,60 +1,47 @@
 // =========================================================================
-// Aesthetic Sketch Diary Portfolio — Main Application Logic
+// Editorial Student Portfolio — Application Controller
 // =========================================================================
 
 (function () {
-    const STORAGE_KEY = 'aesthetic_sketch_diary_portfolio_v1';
-    const THEMES = ['default', 'theme-cream', 'theme-rose', 'theme-PureSketch'];
+    const STORAGE_KEY = 'editorial_student_portfolio_v2';
 
-    // Application State
-    let portfolioData = loadPortfolioData();
-    let currentSpread = 'about'; // 'cover' | 'about' | 'skills' | 'projects' | 'journey' | 'contact'
-    let isBookOpen = false;
-    let isInlineEdit = false;
-    let soundEnabled = true;
-    let currentThemeIndex = 0;
-    let currentModalTab = 'personal';
+    let portfolioData = loadData();
+    let isInlineEditing = false;
+    let activeModalTab = 'welcome';
 
     // DOM Elements
-    const coverView = document.getElementById('cover-view');
-    const openView = document.getElementById('open-view');
-    const closedNotebookCard = document.getElementById('closed-notebook-card');
-    const openBookSpread = document.getElementById('open-book-spread');
-    const leftPageBody = document.getElementById('left-page-body');
-    const rightPageBody = document.getElementById('right-page-body');
-    const leftPageNum = document.getElementById('left-page-number');
-    const rightPageNum = document.getElementById('right-page-number');
-    const indexTabsRail = document.getElementById('index-tabs-rail');
-    const btnToggleBook = document.getElementById('btn-toggle-book');
-    const toggleBookLabel = document.getElementById('toggle-book-label');
-    const btnInlineEdit = document.getElementById('btn-inline-edit');
-    const inlineEditLabel = document.getElementById('inline-edit-label');
-    const btnFinishInlineEdit = document.getElementById('btn-finish-inline-edit');
-    const btnPrevSpread = document.getElementById('btn-prev-spread');
-    const btnNextSpread = document.getElementById('btn-next-spread');
-    const photoUploadInput = document.getElementById('photo-upload-input');
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const btnEnterMain = document.getElementById('btn-enter-main');
+    const btnShowWelcome = document.getElementById('btn-show-welcome');
+    const btnWelcomeEdit = document.getElementById('btn-welcome-edit');
+    const btnToggleInlineEdit = document.getElementById('btn-toggle-inline-edit');
+    const btnDoneEditing = document.getElementById('btn-done-editing');
+    const btnOpenCustomizer = document.getElementById('btn-open-customizer');
+    const customizerModal = document.getElementById('customizer-modal');
+    const modalContentArea = document.getElementById('modal-content-area');
+    const portraitUploadInput = document.getElementById('portrait-upload-input');
 
     // =====================================================================
-    // 1. DATA LOADING & PERSISTENCE
+    // 1. DATA STORAGE & HELPERS
     // =====================================================================
-    function loadPortfolioData() {
+    function loadData() {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
                 return deepMerge(structuredClone(DEFAULT_PORTFOLIO_DATA), parsed);
             }
         } catch (err) {
-            console.warn('Could not read saved diary data, using default:', err);
+            console.warn('Could not load saved portfolio data:', err);
         }
         return structuredClone(DEFAULT_PORTFOLIO_DATA);
     }
 
-    function savePortfolioData() {
+    function saveData() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(portfolioData));
         } catch (err) {
-            console.warn('Could not save diary data to localStorage:', err);
+            console.warn('Could not save portfolio data:', err);
         }
     }
 
@@ -76,9 +63,9 @@
         const parts = path.split('.');
         let cur = obj;
         for (let i = 0; i < parts.length - 1; i++) {
-            const part = parts[i];
-            if (!(part in cur)) cur[part] = {};
-            cur = cur[part];
+            const p = parts[i];
+            if (!(p in cur)) cur[p] = {};
+            cur = cur[p];
         }
         cur[parts[parts.length - 1]] = value;
     }
@@ -93,686 +80,341 @@
     }
 
     // =====================================================================
-    // 2. SYNTHESIZED PAPER FLIP SOUND (Web Audio API)
+    // 2. RENDER ALL TEMPLATES
     // =====================================================================
-    let audioCtx = null;
-    function playPaperFlipSound() {
-        if (!soundEnabled) return;
-        try {
-            if (!audioCtx) {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContextClass) return;
-                audioCtx = new AudioContextClass();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            const duration = 0.14;
-            const bufferSize = audioCtx.sampleRate * duration;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                // Soft shaped white noise resembling crisp notebook paper rustle
-                const env = Math.sin((i / bufferSize) * Math.PI);
-                data[i] = (Math.random() * 2 - 1) * env * 0.12;
-            }
-
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(1400, audioCtx.currentTime);
-            filter.Q.setValueAtTime(1.2, audioCtx.currentTime);
-
-            noise.connect(filter);
-            filter.connect(audioCtx.destination);
-            noise.start();
-        } catch (e) {
-            // Ignore audio errors if blocked by browser autoplay policy
-        }
-    }
-
-    // =====================================================================
-    // 3. BUILD HARDWARE: SPIRAL RINGS & INDEX TABS
-    // =====================================================================
-    function buildNotebookHardware() {
-        // Closed cover spiral rings (9 rings)
-        const closedRingsEl = document.getElementById('closed-spiral-rings');
-        closedRingsEl.innerHTML = '';
-        for (let i = 0; i < 9; i++) {
-            const ring = document.createElement('div');
-            ring.className = 'closed-ring-item';
-            closedRingsEl.appendChild(ring);
-        }
-
-        // Peeking tabs on closed cover
-        const peekingEl = document.getElementById('cover-peeking-tabs');
-        peekingEl.innerHTML = '';
-        portfolioData.tabs.slice(1).forEach(t => {
-            const div = document.createElement('div');
-            div.className = 'peeking-tab';
-            div.style.setProperty('--tab-clr', t.color);
-            peekingEl.appendChild(div);
-        });
-
-        // Open notebook center spiral rings (13 double rings like Reference Image 3)
-        const centerSpine = document.getElementById('center-spiral-column');
-        centerSpine.innerHTML = '';
-        for (let i = 0; i < 13; i++) {
-            const row = document.createElement('div');
-            row.className = 'open-ring-row';
-            row.innerHTML = `
-                <div class="ring-hole"></div>
-                <div class="ring-metal-bar"></div>
-                <div class="ring-hole"></div>
-            `;
-            centerSpine.appendChild(row);
-        }
-
-        // Right-hand index tabs rail
-        renderIndexTabs();
-    }
-
-    function renderIndexTabs() {
-        indexTabsRail.innerHTML = '';
-        portfolioData.tabs.forEach(tab => {
-            const btn = document.createElement('button');
-            btn.className = 'diary-tab-btn' + (currentSpread === tab.id && isBookOpen ? ' active' : '');
-            btn.style.setProperty('--tab-color', tab.color);
-            btn.innerHTML = `<span>${escapeHtml(tab.label)}</span>`;
-            btn.addEventListener('click', () => {
-                if (tab.id === 'cover') {
-                    closeDiary();
-                } else {
-                    switchToSpread(tab.id);
-                }
-            });
-            indexTabsRail.appendChild(btn);
-        });
-    }
-
-    // =====================================================================
-    // 4. RENDER COVER & OPEN SPREADS
-    // =====================================================================
-    function renderCover() {
-        document.getElementById('cover-word-top').textContent = portfolioData.diaryMeta.coverLabelTop || 'NOTE';
-        document.getElementById('cover-word-bottom').textContent = portfolioData.diaryMeta.coverLabelBottom || 'BOOK';
-        document.getElementById('cover-owner-text').textContent = `Belongs to: ${portfolioData.profile.name} ✨`;
-        document.getElementById('cover-role-title').textContent = portfolioData.profile.title;
-        document.getElementById('cover-tagline-text').textContent = portfolioData.profile.tagline;
-    }
-
-    function openDiary(targetSpread = 'about') {
-        isBookOpen = true;
-        currentSpread = targetSpread;
-        playPaperFlipSound();
-        coverView.classList.remove('active');
-        openView.classList.add('active');
-        toggleBookLabel.textContent = 'Close Diary';
-        renderIndexTabs();
-        renderCurrentSpread();
-    }
-
-    function closeDiary() {
-        isBookOpen = false;
-        playPaperFlipSound();
-        openView.classList.remove('active');
-        coverView.classList.add('active');
-        toggleBookLabel.textContent = 'Open Diary';
-        renderCover();
-    }
-
-    function switchToSpread(spreadId, direction = 'next') {
-        if (!isBookOpen) {
-            openDiary(spreadId);
-            return;
-        }
-        if (currentSpread === spreadId) return;
-        currentSpread = spreadId;
-        playPaperFlipSound();
-
-        // Trigger page turn animation
-        openBookSpread.classList.remove('flipping-next', 'flipping-prev');
-        void openBookSpread.offsetWidth; // Force reflow
-        openBookSpread.classList.add(direction === 'prev' ? 'flipping-prev' : 'flipping-next');
-
-        renderIndexTabs();
-        renderCurrentSpread();
-    }
-
-    function renderCurrentSpread() {
-        const spreadsOrder = ['about', 'skills', 'projects', 'journey', 'contact'];
-        const idx = spreadsOrder.indexOf(currentSpread);
-        const leftNum = idx * 2 + 1;
-        const rightNum = idx * 2 + 2;
-
-        leftPageNum.textContent = `Page 0${leftNum}`;
-        rightPageNum.textContent = rightNum < 10 ? `Page 0${rightNum}` : `Page ${rightNum}`;
-
-        if (currentSpread === 'about') {
-            renderAboutSpread();
-        } else if (currentSpread === 'skills') {
-            renderSkillsSpread();
-        } else if (currentSpread === 'projects') {
-            renderProjectsSpread();
-        } else if (currentSpread === 'journey') {
-            renderJourneySpread();
-        } else if (currentSpread === 'contact') {
-            renderContactSpread();
-        }
-
-        applyInlineEditListeners();
+    function renderAll() {
+        renderWelcomePage();
+        renderStudentIntroSlide();
+        renderAchievementsSlide();
+        renderPassionsSlide();
+        renderProjectsAndContactSlide();
+        bindInlineEditableElements();
     }
 
     // ---------------------------------------------------------------------
-    // SPREAD 1: ABOUT ME & PERSONAL INFOS (Pages 01 - 02)
+    // A. GREEN WELCOME SCREEN
     // ---------------------------------------------------------------------
-    function renderAboutSpread() {
-        const p = portfolioData.profile;
+    function renderWelcomePage() {
+        const w = portfolioData.welcome;
+        document.getElementById('w-name').textContent = w.name;
+        document.getElementById('w-email').textContent = w.email;
+        document.getElementById('w-phone').textContent = w.phone;
+        document.getElementById('w-addr1').textContent = w.addressLine1;
+        document.getElementById('w-addr2').textContent = w.addressLine2;
+        document.getElementById('w-soc1').textContent = w.socialLine1;
+        document.getElementById('w-soc2').textContent = w.socialLine2;
+        document.getElementById('w-year').textContent = w.yearRange;
+        document.getElementById('w-outline').textContent = w.outlineTitle;
+        document.getElementById('w-solid').textContent = w.solidTitle;
+        document.getElementById('w-subtitle').textContent = w.welcomeSubtitle;
+        document.getElementById('w-enter-text').textContent = w.enterBtnText || 'Enter Main Page';
+        document.getElementById('nav-student-name').textContent = w.name;
+    }
 
-        // LEFT PAGE: Polaroid + Personal Biodata ("This Diary Belongs To")
-        leftPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span>📓 Personal Identification</span>
-                <span data-editable="diaryMeta.diaryYear">${escapeHtml(portfolioData.diaryMeta.diaryYear)}</span>
+    // ---------------------------------------------------------------------
+    // B. TEMPLATE SLIDE 2: STUDENT INTRO / ABOUT (Top-Right Template)
+    // ---------------------------------------------------------------------
+    function renderStudentIntroSlide() {
+        const s = portfolioData.studentIntro;
+
+        // Left Deep Green Panel
+        const greenPanel = document.getElementById('about-green-panel');
+        greenPanel.innerHTML = `
+            <div>
+                <h2 class="about-serif-title" data-editable="studentIntro.heading">${escapeHtml(s.heading)}</h2>
+                <p class="about-bio-text" data-editable="studentIntro.bioParagraph1">${escapeHtml(s.bioParagraph1)}</p>
+                <p class="about-bio-text" data-editable="studentIntro.bioParagraph2">${escapeHtml(s.bioParagraph2)}</p>
             </div>
 
-            <div class="profile-intro-flex">
-                <div class="polaroid-card">
-                    <div class="washi-strip"></div>
-                    <div class="polaroid-photo-box">
-                        <img src="${escapeHtml(p.avatar)}" alt="${escapeHtml(p.name)}" id="polaroid-avatar-img" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80'" />
-                        <button class="change-photo-btn" id="btn-change-photo" title="Upload your own photo">📷 Photo</button>
-                    </div>
-                    <div class="polaroid-caption-text" data-editable="profile.polaroidCaption">${escapeHtml(p.polaroidCaption)}</div>
-                </div>
-
-                <div class="profile-quick-id">
-                    <h1 class="owner-big-name" data-editable="profile.name">${escapeHtml(p.name)}</h1>
-                    <div class="owner-role-badge" data-editable="profile.title">${escapeHtml(p.title)}</div>
-                    <p class="owner-tagline" data-editable="profile.tagline">${escapeHtml(p.tagline)}</p>
-                    <div style="margin-top:10px; font-family:var(--font-note); font-size:0.98rem; color:var(--ink-green); font-weight:700;">
-                        <span data-editable="profile.status">${escapeHtml(p.status)}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="biodata-box">
-                <div class="biodata-box-title">📌 Personal Infos & Biodata</div>
-                <div class="biodata-grid">
-                    <div class="bio-line">
-                        <span class="bio-key">✨ Nickname:</span>
-                        <span class="bio-val" data-editable="profile.nickname">${escapeHtml(p.nickname)}</span>
-                    </div>
-                    <div class="bio-line">
-                        <span class="bio-key">🎂 Birthday:</span>
-                        <span class="bio-val" data-editable="profile.birthday">${escapeHtml(p.birthday)}</span>
-                    </div>
-                    <div class="bio-line">
-                        <span class="bio-key">📍 Location:</span>
-                        <span class="bio-val" data-editable="profile.location">${escapeHtml(p.location)}</span>
-                    </div>
-                    <div class="bio-line">
-                        <span class="bio-key">🎓 Education:</span>
-                        <span class="bio-val" data-editable="profile.educationShort">${escapeHtml(p.educationShort)}</span>
-                    </div>
-                    <div class="bio-line">
-                        <span class="bio-key">🗣️ Languages:</span>
-                        <span class="bio-val" data-editable="profile.languages">${escapeHtml(p.languages)}</span>
-                    </div>
-                    <div class="bio-line">
-                        <span class="bio-key">💫 Vibe / MBTI:</span>
-                        <span class="bio-val" data-editable="profile.mbtiOrVibe">${escapeHtml(p.mbtiOrVibe)}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="biodata-box" style="background:rgba(255, 243, 161, 0.45); margin-bottom:0;">
-                <div class="biodata-box-title">💖 Little Things I Love</div>
-                <div class="biodata-grid">
-                    ${(p.favorites || []).map((fav, idx) => `
-                        <div class="bio-line">
-                            <span class="bio-key" data-editable="profile.favorites.${idx}.label">${escapeHtml(fav.label)}:</span>
-                            <span class="bio-val" data-editable="profile.favorites.${idx}.value">${escapeHtml(fav.value)}</span>
-                        </div>
-                    `).join('')}
-                </div>
+            <div class="about-contact-mini">
+                <strong data-editable="studentIntro.quickContactLabel">${escapeHtml(s.quickContactLabel)}</strong>
+                <div data-editable="studentIntro.quickInfoLine1">${escapeHtml(s.quickInfoLine1)}</div>
+                <div data-editable="studentIntro.quickInfoLine2">${escapeHtml(s.quickInfoLine2)}</div>
             </div>
         `;
 
-        // RIGHT PAGE: Dear Diary Entry + Hobbies + Sticky Note Quote
-        rightPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span data-editable="profile.dearDiaryDate">${escapeHtml(p.dearDiaryDate)}</span>
-                <span data-editable="profile.weatherMood">${escapeHtml(p.weatherMood)}</span>
-            </div>
+        // Center Portrait Photo
+        const portraitImg = document.getElementById('student-portrait-img');
+        portraitImg.src = s.avatar;
+        portraitImg.onerror = function () {
+            this.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';
+        };
 
-            <h2 class="sketch-heading">Dear Diary, Who Am I? ✍️</h2>
-
-            <div class="diary-entry-text" data-editable="profile.bio">${escapeHtml(p.bio)}</div>
-            <div class="diary-entry-text" data-editable="profile.bioSecondParagraph">${escapeHtml(p.bioSecondParagraph)}</div>
-
-            <div class="sketch-sticky-note">
-                <p data-editable="profile.stickyNoteQuote">${escapeHtml(p.stickyNoteQuote)}</p>
-            </div>
-
-            <div style="margin-top:12px;">
-                <div class="biodata-box-title">🎨 My Hobbies & Pastimes</div>
-                <div class="doodle-tags-wrap">
-                    ${(p.hobbies || []).map((hobby, idx) => `
-                        <span class="doodle-pill" data-editable="profile.hobbies.${idx}">${escapeHtml(hobby)}</span>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-
-        // Bind photo upload button
-        const btnChangePhoto = document.getElementById('btn-change-photo');
-        if (btnChangePhoto) {
-            btnChangePhoto.addEventListener('click', (e) => {
-                e.stopPropagation();
-                photoUploadInput.click();
-            });
-        }
-    }
-
-    // ---------------------------------------------------------------------
-    // SPREAD 2: SKILLS & CREATIVE TOOLKIT (Pages 03 - 04)
-    // ---------------------------------------------------------------------
-    function renderSkillsSpread() {
-        const s = portfolioData.skills;
-        const cat0 = s.categories[0] || { name: 'Technical Skills', items: [] };
-        const cat1 = s.categories[1] || { name: 'Design & Workflow', items: [] };
-
-        leftPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span>🛠️ My Craft & Capabilities</span>
-                <span>Skill Log</span>
-            </div>
-
-            <h2 class="sketch-heading" data-editable="skills.leftPageTitle">${escapeHtml(s.leftPageTitle)}</h2>
-
-            <div class="sketch-skill-group">
-                <div class="biodata-box-title" data-editable="skills.categories.0.name">${escapeHtml(cat0.name)}</div>
-                ${cat0.items.map((item, i) => `
-                    <div class="sketch-skill-item">
-                        <div class="sketch-skill-top">
-                            <span data-editable="skills.categories.0.items.${i}.name">${escapeHtml(item.name)}</span>
-                            <span>${item.level}% • <em data-editable="skills.categories.0.items.${i}.note">${escapeHtml(item.note || '')}</em></span>
-                        </div>
-                        <div class="sketch-bar-track">
-                            <div class="sketch-bar-fill" style="width:${Math.min(100, Math.max(0, item.level))}%"></div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-
-            <div class="sketch-skill-group" style="margin-bottom:0;">
-                <div class="biodata-box-title" data-editable="skills.categories.1.name">${escapeHtml(cat1.name)}</div>
-                ${cat1.items.map((item, i) => `
-                    <div class="sketch-skill-item">
-                        <div class="sketch-skill-top">
-                            <span data-editable="skills.categories.1.items.${i}.name">${escapeHtml(item.name)}</span>
-                            <span>${item.level}% • <em data-editable="skills.categories.1.items.${i}.note">${escapeHtml(item.note || '')}</em></span>
-                        </div>
-                        <div class="sketch-bar-track">
-                            <div class="sketch-bar-fill" style="width:${Math.min(100, Math.max(0, item.level))}%"></div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-        rightPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span>✨ Stickers & Toolkit</span>
-                <span>Always Growing</span>
-            </div>
-
-            <h2 class="sketch-heading" data-editable="skills.rightPageTitle">${escapeHtml(s.rightPageTitle)}</h2>
-
-            <div class="biodata-box">
-                <div class="biodata-box-title">🏷️ Tech & Tool Stickers</div>
-                <div class="doodle-tags-wrap">
-                    ${(s.stickers || []).map((st, idx) => `
-                        <span class="doodle-pill" data-editable="skills.stickers.${idx}">${escapeHtml(st)}</span>
-                    `).join('')}
-                </div>
-            </div>
-
-            <div class="sketch-sticky-note" style="background:var(--sticky-mint); transform:rotate(-1deg);">
-                <div class="biodata-box-title" style="color:var(--ink-green);">🌱 Currently Learning & Exploring</div>
-                <p data-editable="skills.currentlyLearning">${escapeHtml(s.currentlyLearning)}</p>
-            </div>
-
-            <div class="biodata-box" style="margin-top:16px;">
-                <div class="biodata-box-title">📝 How I Like to Work</div>
-                <p style="font-family:var(--font-hand); font-size:1.35rem; line-height:1.35; color:var(--ink-body);">
-                    1. Sketch out ideas on paper first ✏️<br/>
-                    2. Build clean, accessible & responsive layouts 💻<br/>
-                    3. Sprinkle delightful details & micro-interactions ✨
-                </p>
-            </div>
-        `;
-    }
-
-    // ---------------------------------------------------------------------
-    // SPREAD 3: PROJECTS SCRAPBOOK (Pages 05 - 06)
-    // ---------------------------------------------------------------------
-    function renderProjectsSpread() {
-        const projects = portfolioData.projects || [];
-        const half = Math.ceil(projects.length / 2);
-        const leftProjects = projects.slice(0, half);
-        const rightProjects = projects.slice(half);
-
-        const renderProjectCard = (proj, actualIndex) => `
-            <div class="scrapbook-card">
-                <div class="scrapbook-card-top">
-                    <img class="scrapbook-thumb" src="${escapeHtml(proj.image)}" alt="${escapeHtml(proj.title)}" onerror="this.src='https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=600&q=80'" />
+        // Right Apricot 2x2 Academic & Student Profile Panel
+        const apricotPanel = document.getElementById('about-apricot-panel');
+        apricotPanel.innerHTML = `
+            <div class="credentials-2x2-grid">
+                ${(s.credentialsGrid || []).map((cred, idx) => `
                     <div>
-                        <div class="scrapbook-meta">
-                            <span data-editable="projects.${actualIndex}.category">${escapeHtml(proj.category)}</span> • 
-                            <span data-editable="projects.${actualIndex}.date">${escapeHtml(proj.date)}</span>
+                        <div class="cred-item-title" data-editable="studentIntro.credentialsGrid.${idx}.title">${escapeHtml(cred.title)}</div>
+                        <div class="cred-item-period" data-editable="studentIntro.credentialsGrid.${idx}.period">${escapeHtml(cred.period)}</div>
+                        <p class="cred-item-desc" data-editable="studentIntro.credentialsGrid.${idx}.description">${escapeHtml(cred.description)}</p>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="about-apricot-footer">
+                <span style="font-size:0.76rem; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:var(--forest-green);">
+                    STUDENT INTRODUCTION
+                </span>
+                <div class="hollow-number green-stroke">${escapeHtml(s.sectionNumber || '01')}</div>
+            </div>
+        `;
+    }
+
+    // ---------------------------------------------------------------------
+    // C. TEMPLATE SLIDE 3: ACHIEVEMENTS (Bottom-Right Apricot & Geometric Template)
+    // ---------------------------------------------------------------------
+    function renderAchievementsSlide() {
+        const a = portfolioData.achievements;
+        const container = document.getElementById('achievements-main-area');
+
+        container.innerHTML = `
+            <div>
+                <div class="achievements-header-row">
+                    <div>
+                        <div style="font-size:0.76rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--terracotta-dark); margin-bottom:6px;">
+                            CHAPTER ${escapeHtml(a.sectionNumber || '02')} • PROUD MOMENTS
                         </div>
-                        <h3 class="scrapbook-title" data-editable="projects.${actualIndex}.title">${escapeHtml(proj.title)}</h3>
+                        <h2 class="achievements-serif-heading" data-editable="achievements.heading">${escapeHtml(a.heading)}</h2>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <button class="btn-back-welcome" id="btn-quick-add-achievement" style="background:var(--forest-green);">
+                            + Add Achievement
+                        </button>
+                        <div class="hollow-number">${escapeHtml(a.sectionNumber || '02')}</div>
                     </div>
                 </div>
-                <p class="scrapbook-desc" data-editable="projects.${actualIndex}.description">${escapeHtml(proj.description)}</p>
-                <div class="scrapbook-footer">
-                    <div class="doodle-tags-wrap" style="margin-top:0;">
-                        ${(proj.tags || []).map(t => `<span class="doodle-pill" style="font-size:0.82rem; padding:1px 8px;">${escapeHtml(t)}</span>`).join('')}
-                    </div>
-                    <div style="display:flex; gap:6px;">
-                        ${proj.demoLink ? `<a class="sketch-btn-sm" href="${escapeHtml(proj.demoLink)}" target="_blank" rel="noopener">🔗 View</a>` : ''}
-                        ${proj.githubLink ? `<a class="sketch-btn-sm" href="${escapeHtml(proj.githubLink)}" target="_blank" rel="noopener" style="background:#fff;">🐙 Code</a>` : ''}
-                    </div>
+
+                <div class="achievements-intro-cols">
+                    <p data-editable="achievements.introLeft">${escapeHtml(a.introLeft)}</p>
+                    <p data-editable="achievements.introRight">${escapeHtml(a.introRight)}</p>
+                </div>
+
+                <div class="achievements-cards-grid">
+                    ${(a.items || []).map((item, idx) => `
+                        <div class="achievement-card">
+                            <div class="ach-top-meta">
+                                <span data-editable="achievements.items.${idx}.organization">${escapeHtml(item.organization)}</span>
+                                <span data-editable="achievements.items.${idx}.year">${escapeHtml(item.year)}</span>
+                            </div>
+                            <h3 class="ach-title" data-editable="achievements.items.${idx}.title">${escapeHtml(item.title)}</h3>
+                            <p class="ach-desc" data-editable="achievements.items.${idx}.description">${escapeHtml(item.description)}</p>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         `;
 
-        leftPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span>🚀 Creative Scrapbook</span>
-                <span>Selected Works (Part 1)</span>
-            </div>
-            <h2 class="sketch-heading">My Sketchbook Projects 📂</h2>
-            <div>
-                ${leftProjects.map((p, idx) => renderProjectCard(p, idx)).join('')}
-            </div>
-        `;
-
-        rightPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span>🌟 Built with Love</span>
-                <span>Selected Works (Part 2)</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h2 class="sketch-heading" style="margin-bottom:0;">More Creations ✨</h2>
-                <button class="sketch-btn-sm" id="btn-quick-add-project">+ Add Project</button>
-            </div>
-            <div>
-                ${rightProjects.map((p, idx) => renderProjectCard(p, half + idx)).join('')}
-            </div>
-        `;
-
-        const quickAddBtn = document.getElementById('btn-quick-add-project');
-        if (quickAddBtn) {
-            quickAddBtn.addEventListener('click', () => {
-                openModal('projects');
-            });
+        const quickAddAch = document.getElementById('btn-quick-add-achievement');
+        if (quickAddAch) {
+            quickAddAch.addEventListener('click', () => openModal('achievements'));
         }
     }
 
     // ---------------------------------------------------------------------
-    // SPREAD 4: JOURNEY & TIMELINE (Pages 07 - 08)
+    // D. TEMPLATE SLIDE 4: MY PASSIONS (Bottom-Left Pistachio + 2x2 Photo Grid)
     // ---------------------------------------------------------------------
-    function renderJourneySpread() {
-        const items = portfolioData.journey || [];
-        const half = Math.ceil(items.length / 2);
-        const leftItems = items.slice(0, half);
-        const rightItems = items.slice(half);
+    function renderPassionsSlide() {
+        const p = portfolioData.passions;
+        const sidebar = document.getElementById('passions-pistachio-sidebar');
+        const collage = document.getElementById('passions-white-collage');
 
-        const renderTimelineItem = (item, realIdx) => `
-            <div class="diary-timeline-card">
-                <div style="font-family:var(--font-hand); font-size:1.2rem; font-weight:700; color:var(--ink-accent);" data-editable="journey.${realIdx}.period">
-                    ${escapeHtml(item.period)}
+        sidebar.innerHTML = `
+            <div>
+                <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--terracotta-dark); margin-bottom:8px;">
+                    CHAPTER ${escapeHtml(p.sectionNumber || '03')} • WHAT DRIVES ME
                 </div>
-                <div style="font-family:var(--font-title); font-size:1.22rem; font-weight:700; color:var(--sketch-black);" data-editable="journey.${realIdx}.title">
-                    ${escapeHtml(item.title)}
-                </div>
-                <div style="font-family:var(--font-note); font-size:1rem; color:var(--ink-muted); margin-bottom:4px;" data-editable="journey.${realIdx}.place">
-                    📍 ${escapeHtml(item.place)}
-                </div>
-                <p style="font-family:var(--font-note); font-size:1.02rem; color:var(--ink-body); line-height:1.35;" data-editable="journey.${realIdx}.description">
-                    ${escapeHtml(item.description)}
-                </p>
-            </div>
-        `;
+                <h2 class="passions-serif-title" data-editable="passions.heading">${escapeHtml(p.heading)}</h2>
+                <p class="passions-sidebar-text" data-editable="passions.sidebarDesc">${escapeHtml(p.sidebarDesc)}</p>
 
-        leftPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span>🎓 My Story So Far</span>
-                <span>Chapters & Milestones</span>
-            </div>
-            <h2 class="sketch-heading">Education & Experience 📜</h2>
-            <div class="diary-timeline">
-                ${leftItems.map((it, idx) => renderTimelineItem(it, idx)).join('')}
-            </div>
-        `;
-
-        rightPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span>🌱 Footprints</span>
-                <span>Memories & Goals</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <h2 class="sketch-heading" style="margin-bottom:0;">Milestones & Chapters 🌟</h2>
-                <button class="sketch-btn-sm" id="btn-quick-add-journey">+ Add Milestone</button>
-            </div>
-            <div class="diary-timeline">
-                ${rightItems.map((it, idx) => renderTimelineItem(it, half + idx)).join('')}
-            </div>
-            <div class="sketch-sticky-note" style="margin-top:16px;">
-                <p>✨ "Every big journey begins with a single scribbled page in a notebook."</p>
-            </div>
-        `;
-
-        const quickAddJourney = document.getElementById('btn-quick-add-journey');
-        if (quickAddJourney) {
-            quickAddJourney.addEventListener('click', () => {
-                openModal('journey');
-            });
-        }
-    }
-
-    // ---------------------------------------------------------------------
-    // SPREAD 5: CONTACT & DIARY GUESTBOOK (Pages 09 - 10)
-    // ---------------------------------------------------------------------
-    function renderContactSpread() {
-        const c = portfolioData.contact;
-
-        leftPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span>💌 Pen-Pal & Contact</span>
-                <span>Say Hello!</span>
-            </div>
-
-            <h2 class="sketch-heading">Where to Find Me 📬</h2>
-
-            <div class="postal-card">
-                <div class="postage-stamp">
-                    <span>AIR</span>
-                    <span>MAIL</span>
-                    <span>✈️</span>
-                </div>
-                <div class="biodata-box-title">📇 Direct Contact Card</div>
-                <p style="font-family:var(--font-hand); font-size:1.3rem; margin-bottom:12px; padding-right:55px;" data-editable="contact.note">
-                    ${escapeHtml(c.note)}
-                </p>
-                <div class="biodata-grid">
-                    <div class="bio-line">
-                        <span class="bio-key">📧 Email:</span>
-                        <span class="bio-val" data-editable="contact.email">${escapeHtml(c.email)}</span>
-                    </div>
-                    <div class="bio-line">
-                        <span class="bio-key">📱 Phone:</span>
-                        <span class="bio-val" data-editable="contact.phone">${escapeHtml(c.phone)}</span>
-                    </div>
-                    <div class="bio-line">
-                        <span class="bio-key">📍 City:</span>
-                        <span class="bio-val" data-editable="contact.location">${escapeHtml(c.location)}</span>
-                    </div>
-                </div>
-
-                <div style="margin-top:14px;">
-                    <div class="biodata-box-title">🌐 My Social Corners</div>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        ${c.github ? `<a class="sketch-btn-sm" href="${escapeHtml(c.github)}" target="_blank" rel="noopener">🐙 GitHub</a>` : ''}
-                        ${c.linkedin ? `<a class="sketch-btn-sm" href="${escapeHtml(c.linkedin)}" target="_blank" rel="noopener">💼 LinkedIn</a>` : ''}
-                        ${c.instagram ? `<a class="sketch-btn-sm" href="${escapeHtml(c.instagram)}" target="_blank" rel="noopener">📸 Instagram</a>` : ''}
-                        ${c.facebook ? `<a class="sketch-btn-sm" href="${escapeHtml(c.facebook)}" target="_blank" rel="noopener">📘 Facebook</a>` : ''}
-                        <a class="sketch-btn-sm" href="mailto:${escapeHtml(c.email)}" style="background:var(--tape-mint);">✉️ Send Email</a>
-                    </div>
+                <div class="passions-meta-box">
+                    <strong data-editable="passions.metaLabel">${escapeHtml(p.metaLabel)}</strong>
+                    <div data-editable="passions.metaLine1">${escapeHtml(p.metaLine1)}</div>
+                    <div data-editable="passions.metaLine2">${escapeHtml(p.metaLine2)}</div>
                 </div>
             </div>
-        `;
 
-        rightPageBody.innerHTML = `
-            <div class="page-top-meta">
-                <span>🖊️ Scribble a Note</span>
-                <span>Diary Guestbook</span>
-            </div>
-
-            <h2 class="sketch-heading">Leave a Note in My Diary 📌</h2>
-
-            <form id="guestbook-form" class="biodata-box" style="background:#fff;">
-                <div class="sketch-field">
-                    <label for="gb-name">Your Name / Pen Name:</label>
-                    <input type="text" id="gb-name" class="sketch-input" placeholder="e.g., Alex ✨" required />
-                </div>
-                <div class="sketch-field">
-                    <label for="gb-msg">Your Message or Note:</label>
-                    <textarea id="gb-msg" class="sketch-textarea" rows="2" placeholder="Write something sweet or drop your contact..." required></textarea>
-                </div>
-                <button type="submit" class="sketch-btn-sm" style="background:var(--cover-green); color:#fff; padding:6px 16px;">
-                    📌 Pin Note to Diary
+            <div class="passions-bottom-num">
+                <button class="btn-back-welcome" id="btn-quick-edit-passions" style="background:var(--forest-green);">
+                    + Edit Passions
                 </button>
-            </form>
+                <div class="hollow-number white-stroke">${escapeHtml(p.sectionNumber || '03')}</div>
+            </div>
+        `;
 
-            <div id="guestbook-notes-list" style="max-height:240px; overflow-y:auto; padding-right:4px;">
-                ${(c.guestbookEntries || []).map((entry, idx) => `
-                    <div class="sketch-sticky-note" style="margin:8px 0; padding:10px 14px; background:${idx % 2 === 0 ? 'var(--sticky-yellow)' : 'var(--sticky-pink)'};">
-                        <div style="display:flex; justify-content:space-between; font-family:var(--font-title); font-size:0.95rem; font-weight:700;">
-                            <span>From: ${escapeHtml(entry.name)}</span>
-                            <span style="color:var(--ink-muted);">${escapeHtml(entry.date)}</span>
+        collage.innerHTML = (p.cards || []).map((card, idx) => `
+            <article class="passion-grid-card">
+                <div class="passion-img-frame">
+                    <img src="${escapeHtml(card.image)}" alt="${escapeHtml(card.title)}" onerror="this.src='https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=600&q=80'" />
+                </div>
+                <div class="passion-card-body">
+                    <span class="passion-tag" data-editable="passions.cards.${idx}.tag">${escapeHtml(card.tag)}</span>
+                    <h3 class="passion-card-title" data-editable="passions.cards.${idx}.title">${escapeHtml(card.title)}</h3>
+                    <p class="passion-card-desc" data-editable="passions.cards.${idx}.description">${escapeHtml(card.description)}</p>
+                </div>
+            </article>
+        `).join('');
+
+        const btnEditPassions = document.getElementById('btn-quick-edit-passions');
+        if (btnEditPassions) {
+            btnEditPassions.addEventListener('click', () => openModal('passions'));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // E. TEMPLATE SLIDE 5: STUDENT WORKS & CONTACT
+    // ---------------------------------------------------------------------
+    function renderProjectsAndContactSlide() {
+        const pr = portfolioData.projects;
+        const w = portfolioData.welcome;
+
+        const projectsPanel = document.getElementById('projects-white-panel');
+        projectsPanel.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                <div>
+                    <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--terracotta); margin-bottom:6px;">
+                        CHAPTER ${escapeHtml(pr.sectionNumber || '04')} • PORTFOLIO
+                    </div>
+                    <h2 class="achievements-serif-heading" data-editable="projects.heading">${escapeHtml(pr.heading)}</h2>
+                </div>
+                <div class="hollow-number green-stroke">${escapeHtml(pr.sectionNumber || '04')}</div>
+            </div>
+
+            <div class="projects-grid-2">
+                ${(pr.items || []).map((item, idx) => `
+                    <div class="editorial-project-card">
+                        <div class="proj-green-frame">
+                            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" onerror="this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80'" />
                         </div>
-                        <p style="font-size:1.2rem; margin-top:3px;">${escapeHtml(entry.message)}</p>
+                        <h3 class="proj-headline" data-editable="projects.items.${idx}.title">${escapeHtml(item.title)}</h3>
+                        <p class="proj-body-text" data-editable="projects.items.${idx}.description">${escapeHtml(item.description)}</p>
+                        <div class="proj-meta-footer">
+                            <span><span data-editable="projects.items.${idx}.date">${escapeHtml(item.date)}</span> • <span data-editable="projects.items.${idx}.location">${escapeHtml(item.location)}</span></span>
+                            ${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener" style="color:var(--forest-green); text-decoration:none; font-weight:800;">VIEW ↗</a>` : ''}
+                        </div>
                     </div>
                 `).join('')}
             </div>
         `;
 
-        const gbForm = document.getElementById('guestbook-form');
-        if (gbForm) {
-            gbForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const nameInput = document.getElementById('gb-name');
-                const msgInput = document.getElementById('gb-msg');
-                const nameVal = nameInput.value.trim();
-                const msgVal = msgInput.value.trim();
-                if (!nameVal || !msgVal) return;
+        const contactPanel = document.getElementById('contact-green-panel');
+        contactPanel.innerHTML = `
+            <div>
+                <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--apricot); margin-bottom:8px;">
+                    GET IN TOUCH
+                </div>
+                <h2 class="about-serif-title" style="font-size:2.4rem; margin-bottom:14px;">Let's Connect</h2>
+                <p class="about-bio-text">
+                    Thank you for exploring my student portfolio! Feel free to reach out for academic collaborations, projects, or a friendly conversation.
+                </p>
 
-                if (!portfolioData.contact.guestbookEntries) {
-                    portfolioData.contact.guestbookEntries = [];
-                }
-                const now = new Date();
-                const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                portfolioData.contact.guestbookEntries.unshift({
-                    name: nameVal,
-                    date: dateStr,
-                    message: msgVal
-                });
-                savePortfolioData();
-                playPaperFlipSound();
-                renderContactSpread();
+                <form class="contact-form-editorial" id="contact-form-editorial">
+                    <input type="text" class="editorial-input" placeholder="Your Name" required />
+                    <input type="email" class="editorial-input" placeholder="Your Email" required />
+                    <textarea class="editorial-input" rows="3" placeholder="Write a message..." required></textarea>
+                    <button type="submit" class="btn-terracotta-submit">Send Message ↗</button>
+                </form>
+            </div>
+
+            <div class="about-contact-mini">
+                <strong>DIRECT CONTACT</strong>
+                <div>${escapeHtml(w.email)} • ${escapeHtml(w.phone)}</div>
+                <div>${escapeHtml(w.addressLine1)} • ${escapeHtml(w.addressLine2)}</div>
+            </div>
+        `;
+
+        const contactForm = document.getElementById('contact-form-editorial');
+        if (contactForm) {
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('Thank you for your message! Your note has been received.');
+                contactForm.reset();
             });
         }
     }
 
     // =====================================================================
-    // 5. INLINE ON-PAGE EDITING MODE
+    // 3. WELCOME SCREEN <-> MAIN PAGE NAVIGATION
     // =====================================================================
-    function toggleInlineEditMode(forceState) {
-        isInlineEdit = typeof forceState === 'boolean' ? forceState : !isInlineEdit;
-        document.body.classList.toggle('is-editing', isInlineEdit);
-        btnInlineEdit.classList.toggle('edit-active', isInlineEdit);
-        inlineEditLabel.textContent = isInlineEdit ? 'Edit On-Page: ON' : 'Edit On-Page: OFF';
+    btnEnterMain.addEventListener('click', () => {
+        welcomeScreen.classList.add('hidden-cover');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
-        if (isInlineEdit && !isBookOpen) {
-            openDiary('about');
-        } else {
-            applyInlineEditListeners();
-        }
+    btnShowWelcome.addEventListener('click', () => {
+        welcomeScreen.classList.remove('hidden-cover');
+    });
+
+    // =====================================================================
+    // 4. INLINE ON-PAGE EDITING
+    // =====================================================================
+    function setInlineEditing(state) {
+        isInlineEditing = state;
+        document.body.classList.toggle('is-editing', isInlineEditing);
+        btnToggleInlineEdit.classList.toggle('active', isInlineEditing);
+        btnToggleInlineEdit.textContent = isInlineEditing ? '✏️ Edit On-Page: ON' : '✏️ Edit On-Page: OFF';
+        bindInlineEditableElements();
     }
 
-    function applyInlineEditListeners() {
-        const editables = document.querySelectorAll('[data-editable]');
-        editables.forEach(el => {
-            if (isInlineEdit) {
+    btnToggleInlineEdit.addEventListener('click', () => setInlineEditing(!isInlineEditing));
+    btnDoneEditing.addEventListener('click', () => setInlineEditing(false));
+
+    function bindInlineEditableElements() {
+        document.querySelectorAll('[data-editable]').forEach(el => {
+            if (isInlineEditing) {
                 el.setAttribute('contenteditable', 'true');
                 el.setAttribute('spellcheck', 'false');
             } else {
                 el.removeAttribute('contenteditable');
             }
 
-            if (!el.dataset.boundEdit) {
-                el.dataset.boundEdit = 'true';
+            if (!el.dataset.boundInline) {
+                el.dataset.boundInline = 'true';
                 el.addEventListener('blur', () => {
                     const path = el.getAttribute('data-editable');
-                    const newVal = el.innerText.trim();
-                    setByPath(portfolioData, path, newVal);
-                    savePortfolioData();
-                    renderCover();
+                    const val = el.innerText.trim();
+                    setByPath(portfolioData, path, val);
+                    saveData();
+                    renderWelcomePage();
                 });
             }
         });
     }
 
     // =====================================================================
-    // 6. POLAROID PHOTO UPLOAD HANDLER
+    // 5. STUDENT PORTRAIT PHOTO UPLOAD
     // =====================================================================
-    photoUploadInput.addEventListener('change', (e) => {
+    document.getElementById('btn-change-portrait').addEventListener('click', () => {
+        portraitUploadInput.click();
+    });
+
+    portraitUploadInput.addEventListener('change', (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function (evt) {
             const img = new Image();
             img.onload = function () {
-                // Resize image to max 500x500 so it saves cleanly in localStorage
                 const canvas = document.createElement('canvas');
-                const maxDim = 500;
+                const maxDim = 650;
                 let w = img.width;
-                let height = img.height;
-                if (w > height && w > maxDim) {
-                    height = Math.round((height * maxDim) / w);
+                let h = img.height;
+                if (w > h && w > maxDim) {
+                    h = Math.round((h * maxDim) / w);
                     w = maxDim;
-                } else if (height > maxDim) {
-                    w = Math.round((w * maxDim) / height);
-                    height = maxDim;
+                } else if (h > maxDim) {
+                    w = Math.round((w * maxDim) / h);
+                    h = maxDim;
                 }
                 canvas.width = w;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, height);
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                portfolioData.profile.avatar = dataUrl;
-                savePortfolioData();
-                if (currentSpread === 'about') {
-                    renderAboutSpread();
-                }
-                if (document.getElementById('customizer-modal').classList.contains('active')) {
-                    renderModalTabContent();
+                canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                portfolioData.studentIntro.avatar = canvas.toDataURL('image/jpeg', 0.86);
+                saveData();
+                renderStudentIntroSlide();
+                if (customizerModal.classList.contains('active')) {
+                    renderModalTab();
                 }
             };
             img.src = evt.target.result;
@@ -781,546 +423,372 @@
     });
 
     // =====================================================================
-    // 7. INTERACTIVE SKETCH PEN & DOODLE CANVAS
+    // 6. FULL DETAILS CUSTOMIZER MODAL
     // =====================================================================
-    const doodleCanvas = document.getElementById('doodle-canvas');
-    const doodleCtx = doodleCanvas.getContext('2d');
-    const doodlePalette = document.getElementById('doodle-palette');
-    const btnDoodleMode = document.getElementById('btn-doodle-mode');
-    const restingPen = document.getElementById('resting-pen');
-
-    let isDoodleActive = false;
-    let isDrawing = false;
-    let penColor = '#1e1b18';
-    let penSize = 2.8;
-    let lastX = 0;
-    let lastY = 0;
-
-    function resizeDoodleCanvas() {
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = doodleCanvas.width;
-        tempCanvas.height = doodleCanvas.height;
-        if (doodleCanvas.width > 0 && doodleCanvas.height > 0) {
-            tempCanvas.getContext('2d').drawImage(doodleCanvas, 0, 0);
-        }
-        doodleCanvas.width = window.innerWidth;
-        doodleCanvas.height = window.innerHeight;
-        if (tempCanvas.width > 0 && tempCanvas.height > 0) {
-            doodleCtx.drawImage(tempCanvas, 0, 0);
-        }
-    }
-    window.addEventListener('resize', resizeDoodleCanvas);
-    resizeDoodleCanvas();
-
-    function toggleDoodleMode(force) {
-        isDoodleActive = typeof force === 'boolean' ? force : !isDoodleActive;
-        doodleCanvas.classList.toggle('drawing-enabled', isDoodleActive);
-        doodlePalette.classList.toggle('show', isDoodleActive);
-        btnDoodleMode.classList.toggle('active', isDoodleActive);
-        if (restingPen) {
-            restingPen.classList.toggle('pen-in-hand', isDoodleActive);
-        }
-    }
-
-    btnDoodleMode.addEventListener('click', () => toggleDoodleMode());
-    if (restingPen) {
-        restingPen.addEventListener('click', () => toggleDoodleMode());
-    }
-    document.getElementById('btn-close-doodle').addEventListener('click', () => toggleDoodleMode(false));
-    document.getElementById('btn-clear-doodles').addEventListener('click', () => {
-        doodleCtx.clearRect(0, 0, doodleCanvas.width, doodleCanvas.height);
-    });
-
-    document.querySelectorAll('.ink-swatch').forEach(swatch => {
-        swatch.addEventListener('click', () => {
-            document.querySelectorAll('.ink-swatch').forEach(s => s.classList.remove('selected'));
-            swatch.classList.add('selected');
-            penColor = swatch.dataset.color;
-            penSize = parseFloat(swatch.dataset.size || '2.8');
-        });
-    });
-
-    doodleCanvas.addEventListener('pointerdown', (e) => {
-        if (!isDoodleActive) return;
-        isDrawing = true;
-        lastX = e.clientX;
-        lastY = e.clientY;
-    });
-
-    doodleCanvas.addEventListener('pointermove', (e) => {
-        if (!isDrawing || !isDoodleActive) return;
-        doodleCtx.beginPath();
-        doodleCtx.moveTo(lastX, lastY);
-        doodleCtx.lineTo(e.clientX, e.clientY);
-        doodleCtx.strokeStyle = penColor;
-        doodleCtx.lineWidth = penSize;
-        doodleCtx.lineCap = 'round';
-        doodleCtx.lineJoin = 'round';
-        doodleCtx.stroke();
-        lastX = e.clientX;
-        lastY = e.clientY;
-    });
-
-    window.addEventListener('pointerup', () => {
-        isDrawing = false;
-    });
-
-    // =====================================================================
-    // 8. FULL DETAILS MANAGER MODAL
-    // =====================================================================
-    const customizerModal = document.getElementById('customizer-modal');
-    const modalTabContent = document.getElementById('modal-tab-content');
-
-    function openModal(tabName = 'personal') {
-        currentModalTab = tabName;
+    function openModal(tab = 'welcome') {
+        activeModalTab = tab;
         customizerModal.classList.add('active');
         updateModalTabButtons();
-        renderModalTabContent();
+        renderModalTab();
     }
 
     function closeModal() {
         customizerModal.classList.remove('active');
-        renderCover();
-        if (isBookOpen) renderCurrentSpread();
+        renderAll();
     }
 
     function updateModalTabButtons() {
-        document.querySelectorAll('.modal-tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.mtab === currentModalTab);
+        document.querySelectorAll('.m-tab-btn[data-tab]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === activeModalTab);
         });
     }
 
-    document.querySelectorAll('.modal-tab-btn').forEach(btn => {
+    document.querySelectorAll('.m-tab-btn[data-tab]').forEach(btn => {
         btn.addEventListener('click', () => {
-            collectCurrentModalTabInputs();
-            currentModalTab = btn.dataset.mtab;
+            collectModalInputs();
+            activeModalTab = btn.dataset.tab;
             updateModalTabButtons();
-            renderModalTabContent();
+            renderModalTab();
         });
     });
 
-    function renderModalTabContent() {
-        const p = portfolioData.profile;
-        const c = portfolioData.contact;
+    btnOpenCustomizer.addEventListener('click', () => openModal('intro'));
+    btnWelcomeEdit.addEventListener('click', () => openModal('welcome'));
+    document.getElementById('btn-close-modal').addEventListener('click', closeModal);
 
-        if (currentModalTab === 'personal') {
-            modalTabContent.innerHTML = `
-                <div class="form-grid-2">
-                    <div class="sketch-field">
-                        <label>Full Name:</label>
-                        <input type="text" class="sketch-input" id="m-name" value="${escapeHtml(p.name)}" />
+    document.getElementById('btn-save-modal').addEventListener('click', () => {
+        collectModalInputs();
+        saveData();
+        closeModal();
+    });
+
+    function renderModalTab() {
+        const w = portfolioData.welcome;
+        const s = portfolioData.studentIntro;
+        const a = portfolioData.achievements;
+        const p = portfolioData.passions;
+        const pr = portfolioData.projects;
+
+        if (activeModalTab === 'welcome') {
+            modalContentArea.innerHTML = `
+                <div class="f-grid-2">
+                    <div class="f-group">
+                        <label>Your Full Name:</label>
+                        <input type="text" class="f-input" id="m-w-name" value="${escapeHtml(w.name)}" />
                     </div>
-                    <div class="sketch-field">
-                        <label>Nickname:</label>
-                        <input type="text" class="sketch-input" id="m-nickname" value="${escapeHtml(p.nickname)}" />
+                    <div class="f-group">
+                        <label>Academic Year / Timeline:</label>
+                        <input type="text" class="f-input" id="m-w-year" value="${escapeHtml(w.yearRange)}" />
                     </div>
-                    <div class="sketch-field">
-                        <label>Role / Headline:</label>
-                        <input type="text" class="sketch-input" id="m-title" value="${escapeHtml(p.title)}" />
+                    <div class="f-group">
+                        <label>Outlined Big Word (e.g. Student / Design):</label>
+                        <input type="text" class="f-input" id="m-w-outline" value="${escapeHtml(w.outlineTitle)}" />
                     </div>
-                    <div class="sketch-field">
-                        <label>Birthday:</label>
-                        <input type="text" class="sketch-input" id="m-birthday" value="${escapeHtml(p.birthday)}" />
+                    <div class="f-group">
+                        <label>Solid Big Word (e.g. Portfolio):</label>
+                        <input type="text" class="f-input" id="m-w-solid" value="${escapeHtml(w.solidTitle)}" />
                     </div>
-                    <div class="sketch-field">
-                        <label>Location / City:</label>
-                        <input type="text" class="sketch-input" id="m-location" value="${escapeHtml(p.location)}" />
+                    <div class="f-group">
+                        <label>Email:</label>
+                        <input type="text" class="f-input" id="m-w-email" value="${escapeHtml(w.email)}" />
                     </div>
-                    <div class="sketch-field">
-                        <label>Education (Short):</label>
-                        <input type="text" class="sketch-input" id="m-edu" value="${escapeHtml(p.educationShort)}" />
+                    <div class="f-group">
+                        <label>Phone:</label>
+                        <input type="text" class="f-input" id="m-w-phone" value="${escapeHtml(w.phone)}" />
                     </div>
-                    <div class="sketch-field">
-                        <label>Languages:</label>
-                        <input type="text" class="sketch-input" id="m-lang" value="${escapeHtml(p.languages)}" />
+                    <div class="f-group">
+                        <label>Address / Department Line 1:</label>
+                        <input type="text" class="f-input" id="m-w-addr1" value="${escapeHtml(w.addressLine1)}" />
                     </div>
-                    <div class="sketch-field">
-                        <label>Vibe / MBTI / Personality:</label>
-                        <input type="text" class="sketch-input" id="m-mbti" value="${escapeHtml(p.mbtiOrVibe)}" />
+                    <div class="f-group">
+                        <label>City / University Line 2:</label>
+                        <input type="text" class="f-input" id="m-w-addr2" value="${escapeHtml(w.addressLine2)}" />
+                    </div>
+                    <div class="f-group">
+                        <label>Social Handle 1:</label>
+                        <input type="text" class="f-input" id="m-w-soc1" value="${escapeHtml(w.socialLine1)}" />
+                    </div>
+                    <div class="f-group">
+                        <label>Social Link 2:</label>
+                        <input type="text" class="f-input" id="m-w-soc2" value="${escapeHtml(w.socialLine2)}" />
                     </div>
                 </div>
-
-                <div class="sketch-field">
-                    <label>Tagline:</label>
-                    <input type="text" class="sketch-input" id="m-tagline" value="${escapeHtml(p.tagline)}" />
-                </div>
-
-                <div class="sketch-field">
-                    <label>Profile Photo (Upload from PC or Paste Image URL):</label>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <input type="text" class="sketch-input" id="m-avatar" value="${escapeHtml(p.avatar)}" />
-                        <button type="button" class="sketch-btn-sm" id="m-btn-upload-photo" style="white-space:nowrap; padding:8px 14px;">📷 Upload File</button>
-                    </div>
-                </div>
-
-                <div class="sketch-field">
-                    <label>Dear Diary — Bio Paragraph 1:</label>
-                    <textarea class="sketch-textarea" id="m-bio1" rows="3">${escapeHtml(p.bio)}</textarea>
-                </div>
-
-                <div class="sketch-field">
-                    <label>Dear Diary — Bio Paragraph 2:</label>
-                    <textarea class="sketch-textarea" id="m-bio2" rows="2">${escapeHtml(p.bioSecondParagraph)}</textarea>
-                </div>
-
-                <div class="sketch-field">
-                    <label>Favorite Quote (Sticky Note):</label>
-                    <input type="text" class="sketch-input" id="m-quote" value="${escapeHtml(p.stickyNoteQuote)}" />
+                <div class="f-group">
+                    <label>Welcome Greeting Message:</label>
+                    <textarea class="f-textarea" id="m-w-sub" rows="2">${escapeHtml(w.welcomeSubtitle)}</textarea>
                 </div>
             `;
 
-            document.getElementById('m-btn-upload-photo').addEventListener('click', () => {
-                photoUploadInput.click();
-            });
+        } else if (activeModalTab === 'intro') {
+            modalContentArea.innerHTML = `
+                <div class="f-group">
+                    <label>Student Portrait Photo (Upload File or Paste URL):</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" class="f-input" id="m-s-avatar" value="${escapeHtml(s.avatar)}" />
+                        <button type="button" class="m-tab-btn" id="m-btn-upload" style="white-space:nowrap;">📷 Upload File</button>
+                    </div>
+                </div>
+                <div class="f-group">
+                    <label>Student Intro — Paragraph 1:</label>
+                    <textarea class="f-textarea" id="m-s-bio1" rows="3">${escapeHtml(s.bioParagraph1)}</textarea>
+                </div>
+                <div class="f-group">
+                    <label>Student Intro — Paragraph 2:</label>
+                    <textarea class="f-textarea" id="m-s-bio2" rows="2">${escapeHtml(s.bioParagraph2)}</textarea>
+                </div>
+                <div class="f-grid-2">
+                    <div class="f-group">
+                        <label>Academic Summary Line 1:</label>
+                        <input type="text" class="f-input" id="m-s-q1" value="${escapeHtml(s.quickInfoLine1)}" />
+                    </div>
+                    <div class="f-group">
+                        <label>Academic Summary Line 2:</label>
+                        <input type="text" class="f-input" id="m-s-q2" value="${escapeHtml(s.quickInfoLine2)}" />
+                    </div>
+                </div>
 
-        } else if (currentModalTab === 'favorites') {
-            modalTabContent.innerHTML = `
-                <h3 style="font-family:var(--font-title); margin-bottom:10px;">💖 Favorite Things</h3>
-                ${(p.favorites || []).map((fav, i) => `
-                    <div class="form-grid-2" style="margin-bottom:8px;">
-                        <input type="text" class="sketch-input m-fav-label" data-idx="${i}" value="${escapeHtml(fav.label)}" placeholder="Category (e.g. ☕ Drink)" />
-                        <input type="text" class="sketch-input m-fav-val" data-idx="${i}" value="${escapeHtml(fav.value)}" placeholder="Your favorite..." />
+                <h3 style="margin:16px 0 10px; font-family:var(--font-serif); color:var(--forest-green);">4 Academic & Student Profile Blocks (Apricot Panel)</h3>
+                ${(s.credentialsGrid || []).map((c, idx) => `
+                    <div class="item-editor-box" data-cred-idx="${idx}">
+                        <div class="f-grid-2">
+                            <input type="text" class="f-input m-cred-title" value="${escapeHtml(c.title)}" placeholder="Degree / Focus Title" />
+                            <input type="text" class="f-input m-cred-period" value="${escapeHtml(c.period)}" placeholder="Years / Subtitle" />
+                        </div>
+                        <textarea class="f-textarea m-cred-desc" rows="2" style="margin-top:8px;">${escapeHtml(c.description)}</textarea>
                     </div>
                 `).join('')}
-
-                <h3 style="font-family:var(--font-title); margin:18px 0 8px 0;">🎨 Hobbies (Comma separated)</h3>
-                <textarea class="sketch-textarea" id="m-hobbies-csv" rows="3">${escapeHtml((p.hobbies || []).join(', '))}</textarea>
             `;
 
-        } else if (currentModalTab === 'skills') {
-            const s = portfolioData.skills;
-            modalTabContent.innerHTML = `
-                <h3 style="font-family:var(--font-title); margin-bottom:10px;">🛠️ Skill Stickers (Comma separated)</h3>
-                <textarea class="sketch-textarea" id="m-stickers-csv" rows="3">${escapeHtml((s.stickers || []).join(', '))}</textarea>
+            document.getElementById('m-btn-upload').addEventListener('click', () => portraitUploadInput.click());
 
-                <div class="sketch-field" style="margin-top:14px;">
-                    <label>🌱 Currently Learning Note:</label>
-                    <input type="text" class="sketch-input" id="m-learning" value="${escapeHtml(s.currentlyLearning)}" />
+        } else if (activeModalTab === 'achievements') {
+            modalContentArea.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <h3 style="font-family:var(--font-serif); color:var(--forest-green);">Manage Your Student Achievements</h3>
+                    <button type="button" class="btn-terracotta-submit" id="m-add-ach" style="padding:8px 16px;">+ Add Achievement</button>
                 </div>
-                <p style="font-family:var(--font-note); color:var(--ink-muted); margin-top:8px;">
-                    💡 Tip: You can also turn on <strong>"✏️ Edit On-Page"</strong> in the top bar to click and edit any skill name directly on the notebook page!
-                </p>
-            `;
-
-        } else if (currentModalTab === 'projects') {
-            const projects = portfolioData.projects || [];
-            modalTabContent.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <h3 style="font-family:var(--font-title);">🚀 Manage Scrapbook Projects</h3>
-                    <button type="button" class="sketch-btn-sm" id="m-add-proj-btn">+ Add New Project</button>
+                <div class="f-grid-2">
+                    <div class="f-group">
+                        <label>Intro Column 1:</label>
+                        <textarea class="f-textarea" id="m-a-intro1" rows="2">${escapeHtml(a.introLeft)}</textarea>
+                    </div>
+                    <div class="f-group">
+                        <label>Intro Column 2:</label>
+                        <textarea class="f-textarea" id="m-a-intro2" rows="2">${escapeHtml(a.introRight)}</textarea>
+                    </div>
                 </div>
-                <div id="m-projects-list">
-                    ${projects.map((proj, idx) => `
-                        <div class="dynamic-item-card" data-proj-idx="${idx}">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                                <strong>Project #${idx + 1}</strong>
-                                <button type="button" class="sketch-btn-sm m-del-proj" data-idx="${idx}" style="background:#ffd8be;">🗑️ Remove</button>
-                            </div>
-                            <div class="form-grid-2">
-                                <div class="sketch-field">
-                                    <label>Title:</label>
-                                    <input type="text" class="sketch-input m-p-title" value="${escapeHtml(proj.title)}" />
-                                </div>
-                                <div class="sketch-field">
-                                    <label>Category & Date:</label>
-                                    <div style="display:flex; gap:6px;">
-                                        <input type="text" class="sketch-input m-p-cat" value="${escapeHtml(proj.category)}" placeholder="Web App" />
-                                        <input type="text" class="sketch-input m-p-date" value="${escapeHtml(proj.date)}" placeholder="Nov 2026" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sketch-field">
-                                <label>Description:</label>
-                                <textarea class="sketch-textarea m-p-desc" rows="2">${escapeHtml(proj.description)}</textarea>
-                            </div>
-                            <div class="form-grid-2">
-                                <div class="sketch-field">
-                                    <label>Live Demo Link:</label>
-                                    <input type="text" class="sketch-input m-p-demo" value="${escapeHtml(proj.demoLink)}" />
-                                </div>
-                                <div class="sketch-field">
-                                    <label>GitHub Link:</label>
-                                    <input type="text" class="sketch-input m-p-git" value="${escapeHtml(proj.githubLink)}" />
-                                </div>
-                            </div>
-                            <div class="form-grid-2">
-                                <div class="sketch-field">
-                                    <label>Tags (comma separated):</label>
-                                    <input type="text" class="sketch-input m-p-tags" value="${escapeHtml((proj.tags || []).join(', '))}" />
-                                </div>
-                                <div class="sketch-field">
-                                    <label>Image URL:</label>
-                                    <input type="text" class="sketch-input m-p-img" value="${escapeHtml(proj.image)}" />
-                                </div>
+                ${(a.items || []).map((item, idx) => `
+                    <div class="item-editor-box" data-ach-idx="${idx}">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <strong>Achievement #${idx + 1}</strong>
+                            <button type="button" class="m-tab-btn m-del-ach" data-idx="${idx}" style="color:#c06044;">Remove</button>
+                        </div>
+                        <div class="f-grid-2">
+                            <input type="text" class="f-input m-ach-title" value="${escapeHtml(item.title)}" placeholder="Achievement / Honor Title" />
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" class="f-input m-ach-org" value="${escapeHtml(item.organization)}" placeholder="Institution / Event" />
+                                <input type="text" class="f-input m-ach-year" value="${escapeHtml(item.year)}" placeholder="Year" />
                             </div>
                         </div>
-                    `).join('')}
-                </div>
+                        <textarea class="f-textarea m-ach-desc" rows="2" style="margin-top:8px;">${escapeHtml(item.description)}</textarea>
+                    </div>
+                `).join('')}
             `;
 
-            document.getElementById('m-add-proj-btn').addEventListener('click', () => {
-                collectCurrentModalTabInputs();
-                portfolioData.projects.unshift({
-                    id: Date.now(),
-                    title: 'New Sketchbook Project',
-                    category: 'Creative Web',
-                    date: '2026',
-                    description: 'Describe what this project does and why you loved building it!',
-                    tags: ['HTML', 'CSS', 'JavaScript'],
-                    image: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=600&q=80',
-                    demoLink: '#',
-                    githubLink: 'https://github.com/sanjida5102'
+            document.getElementById('m-add-ach').addEventListener('click', () => {
+                collectModalInputs();
+                portfolioData.achievements.items.unshift({
+                    number: '0' + (portfolioData.achievements.items.length + 1),
+                    title: 'New Student Achievement',
+                    year: '2026',
+                    organization: 'University / Competition',
+                    description: 'Describe what you achieved and what it meant to your student journey.'
                 });
-                renderModalTabContent();
+                renderModalTab();
+            });
+
+            document.querySelectorAll('.m-del-ach').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    collectModalInputs();
+                    portfolioData.achievements.items.splice(parseInt(btn.dataset.idx, 10), 1);
+                    renderModalTab();
+                });
+            });
+
+        } else if (activeModalTab === 'passions') {
+            modalContentArea.innerHTML = `
+                <div class="f-group">
+                    <label>Passions Sidebar Intro (Pistachio Green Column):</label>
+                    <textarea class="f-textarea" id="m-p-desc" rows="2">${escapeHtml(p.sidebarDesc)}</textarea>
+                </div>
+                <h3 style="margin:14px 0 10px; font-family:var(--font-serif); color:var(--forest-green);">Your 4 Passion Cards</h3>
+                ${(p.cards || []).map((card, idx) => `
+                    <div class="item-editor-box" data-passion-idx="${idx}">
+                        <div class="f-grid-2">
+                            <input type="text" class="f-input m-pas-title" value="${escapeHtml(card.title)}" placeholder="Passion Title" />
+                            <input type="text" class="f-input m-pas-tag" value="${escapeHtml(card.tag)}" placeholder="Category Tag" />
+                        </div>
+                        <div class="f-group" style="margin-top:8px; margin-bottom:8px;">
+                            <input type="text" class="f-input m-pas-img" value="${escapeHtml(card.image)}" placeholder="Image URL" />
+                        </div>
+                        <textarea class="f-textarea m-pas-desc" rows="2">${escapeHtml(card.description)}</textarea>
+                    </div>
+                `).join('')}
+            `;
+
+        } else if (activeModalTab === 'projects') {
+            modalContentArea.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <h3 style="font-family:var(--font-serif); color:var(--forest-green);">Student Projects & Academic Works</h3>
+                    <button type="button" class="btn-terracotta-submit" id="m-add-proj" style="padding:8px 16px;">+ Add Project</button>
+                </div>
+                ${(pr.items || []).map((item, idx) => `
+                    <div class="item-editor-box" data-proj-idx="${idx}">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <strong>Work #${idx + 1}</strong>
+                            <button type="button" class="m-tab-btn m-del-proj" data-idx="${idx}" style="color:#c06044;">Remove</button>
+                        </div>
+                        <div class="f-grid-2">
+                            <input type="text" class="f-input m-pr-title" value="${escapeHtml(item.title)}" placeholder="Project Title" />
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" class="f-input m-pr-date" value="${escapeHtml(item.date)}" placeholder="Year" />
+                                <input type="text" class="f-input m-pr-loc" value="${escapeHtml(item.location)}" placeholder="Category" />
+                            </div>
+                        </div>
+                        <div class="f-grid-2" style="margin-top:8px;">
+                            <input type="text" class="f-input m-pr-img" value="${escapeHtml(item.image)}" placeholder="Image URL" />
+                            <input type="text" class="f-input m-pr-link" value="${escapeHtml(item.link)}" placeholder="Project Link" />
+                        </div>
+                        <textarea class="f-textarea m-pr-desc" rows="2" style="margin-top:8px;">${escapeHtml(item.description)}</textarea>
+                    </div>
+                `).join('')}
+            `;
+
+            document.getElementById('m-add-proj').addEventListener('click', () => {
+                collectModalInputs();
+                portfolioData.projects.items.unshift({
+                    title: 'New Student Project',
+                    date: '2026',
+                    location: 'Academic / Personal',
+                    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
+                    description: 'Short description of your project.',
+                    link: 'https://github.com/sanjida5102'
+                });
+                renderModalTab();
             });
 
             document.querySelectorAll('.m-del-proj').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    collectCurrentModalTabInputs();
-                    const idx = parseInt(btn.dataset.idx, 10);
-                    portfolioData.projects.splice(idx, 1);
-                    renderModalTabContent();
-                });
-            });
-
-        } else if (currentModalTab === 'journey') {
-            const journey = portfolioData.journey || [];
-            modalTabContent.innerHTML = `
-                <h3 style="font-family:var(--font-title); margin-bottom:10px;">📬 Contact Details & Social Links</h3>
-                <div class="form-grid-2">
-                    <div class="sketch-field">
-                        <label>Email Address:</label>
-                        <input type="text" class="sketch-input" id="m-c-email" value="${escapeHtml(c.email)}" />
-                    </div>
-                    <div class="sketch-field">
-                        <label>Phone Number:</label>
-                        <input type="text" class="sketch-input" id="m-c-phone" value="${escapeHtml(c.phone)}" />
-                    </div>
-                    <div class="sketch-field">
-                        <label>GitHub URL:</label>
-                        <input type="text" class="sketch-input" id="m-c-github" value="${escapeHtml(c.github)}" />
-                    </div>
-                    <div class="sketch-field">
-                        <label>LinkedIn URL:</label>
-                        <input type="text" class="sketch-input" id="m-c-linkedin" value="${escapeHtml(c.linkedin)}" />
-                    </div>
-                </div>
-
-                <div style="display:flex; justify-content:space-between; align-items:center; margin:18px 0 10px 0;">
-                    <h3 style="font-family:var(--font-title);">🎓 Journey & Timeline Milestones</h3>
-                    <button type="button" class="sketch-btn-sm" id="m-add-journey-btn">+ Add Milestone</button>
-                </div>
-                ${journey.map((j, idx) => `
-                    <div class="dynamic-item-card" data-journey-idx="${idx}">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                            <strong>Milestone #${idx + 1}</strong>
-                            <button type="button" class="sketch-btn-sm m-del-journey" data-idx="${idx}" style="background:#ffd8be;">🗑️ Remove</button>
-                        </div>
-                        <div class="form-grid-2">
-                            <input type="text" class="sketch-input m-j-period" value="${escapeHtml(j.period)}" placeholder="Year / Period" />
-                            <input type="text" class="sketch-input m-j-title" value="${escapeHtml(j.title)}" placeholder="Title / Degree / Role" />
-                        </div>
-                        <div class="sketch-field" style="margin-top:6px;">
-                            <input type="text" class="sketch-input m-j-place" value="${escapeHtml(j.place)}" placeholder="Institution / Company / Place" />
-                        </div>
-                        <div class="sketch-field" style="margin-top:6px;">
-                            <textarea class="sketch-textarea m-j-desc" rows="2">${escapeHtml(j.description)}</textarea>
-                        </div>
-                    </div>
-                `).join('')}
-            `;
-
-            document.getElementById('m-add-journey-btn').addEventListener('click', () => {
-                collectCurrentModalTabInputs();
-                portfolioData.journey.unshift({
-                    period: '2026',
-                    title: 'New Chapter or Achievement',
-                    place: 'Location / Institution',
-                    type: 'milestone',
-                    description: 'Details about this milestone in your journey.'
-                });
-                renderModalTabContent();
-            });
-
-            document.querySelectorAll('.m-del-journey').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    collectCurrentModalTabInputs();
-                    const idx = parseInt(btn.dataset.idx, 10);
-                    portfolioData.journey.splice(idx, 1);
-                    renderModalTabContent();
+                    collectModalInputs();
+                    portfolioData.projects.items.splice(parseInt(btn.dataset.idx, 10), 1);
+                    renderModalTab();
                 });
             });
         }
     }
 
-    function collectCurrentModalTabInputs() {
-        const p = portfolioData.profile;
-        if (currentModalTab === 'personal') {
-            const val = id => {
-                const el = document.getElementById(id);
-                return el ? el.value : null;
-            };
-            if (val('m-name') !== null) p.name = val('m-name');
-            if (val('m-nickname') !== null) p.nickname = val('m-nickname');
-            if (val('m-title') !== null) p.title = val('m-title');
-            if (val('m-birthday') !== null) p.birthday = val('m-birthday');
-            if (val('m-location') !== null) p.location = val('m-location');
-            if (val('m-edu') !== null) p.educationShort = val('m-edu');
-            if (val('m-lang') !== null) p.languages = val('m-lang');
-            if (val('m-mbti') !== null) p.mbtiOrVibe = val('m-mbti');
-            if (val('m-tagline') !== null) p.tagline = val('m-tagline');
-            if (val('m-avatar') !== null) p.avatar = val('m-avatar');
-            if (val('m-bio1') !== null) p.bio = val('m-bio1');
-            if (val('m-bio2') !== null) p.bioSecondParagraph = val('m-bio2');
-            if (val('m-quote') !== null) p.stickyNoteQuote = val('m-quote');
+    function collectModalInputs() {
+        const val = id => {
+            const el = document.getElementById(id);
+            return el ? el.value : null;
+        };
 
-        } else if (currentModalTab === 'favorites') {
-            const labels = document.querySelectorAll('.m-fav-label');
-            const vals = document.querySelectorAll('.m-fav-val');
-            if (labels.length) {
-                p.favorites = Array.from(labels).map((lblEl, i) => ({
-                    label: lblEl.value,
-                    value: vals[i] ? vals[i].value : ''
-                }));
-            }
-            const hobbiesCsv = document.getElementById('m-hobbies-csv');
-            if (hobbiesCsv) {
-                p.hobbies = hobbiesCsv.value.split(',').map(s => s.trim()).filter(Boolean);
-            }
+        if (activeModalTab === 'welcome') {
+            const w = portfolioData.welcome;
+            if (val('m-w-name') !== null) w.name = val('m-w-name');
+            if (val('m-w-year') !== null) w.yearRange = val('m-w-year');
+            if (val('m-w-outline') !== null) w.outlineTitle = val('m-w-outline');
+            if (val('m-w-solid') !== null) w.solidTitle = val('m-w-solid');
+            if (val('m-w-email') !== null) w.email = val('m-w-email');
+            if (val('m-w-phone') !== null) w.phone = val('m-w-phone');
+            if (val('m-w-addr1') !== null) w.addressLine1 = val('m-w-addr1');
+            if (val('m-w-addr2') !== null) w.addressLine2 = val('m-w-addr2');
+            if (val('m-w-soc1') !== null) w.socialLine1 = val('m-w-soc1');
+            if (val('m-w-soc2') !== null) w.socialLine2 = val('m-w-soc2');
+            if (val('m-w-sub') !== null) w.welcomeSubtitle = val('m-w-sub');
 
-        } else if (currentModalTab === 'skills') {
-            const stickersCsv = document.getElementById('m-stickers-csv');
-            if (stickersCsv) {
-                portfolioData.skills.stickers = stickersCsv.value.split(',').map(s => s.trim()).filter(Boolean);
-            }
-            const learningEl = document.getElementById('m-learning');
-            if (learningEl) {
-                portfolioData.skills.currentlyLearning = learningEl.value;
-            }
+        } else if (activeModalTab === 'intro') {
+            const s = portfolioData.studentIntro;
+            if (val('m-s-avatar') !== null) s.avatar = val('m-s-avatar');
+            if (val('m-s-bio1') !== null) s.bioParagraph1 = val('m-s-bio1');
+            if (val('m-s-bio2') !== null) s.bioParagraph2 = val('m-s-bio2');
+            if (val('m-s-q1') !== null) s.quickInfoLine1 = val('m-s-q1');
+            if (val('m-s-q2') !== null) s.quickInfoLine2 = val('m-s-q2');
 
-        } else if (currentModalTab === 'projects') {
-            const cards = document.querySelectorAll('[data-proj-idx]');
-            if (cards.length) {
-                portfolioData.projects = Array.from(cards).map(card => ({
-                    id: Date.now() + Math.random(),
-                    title: card.querySelector('.m-p-title').value,
-                    category: card.querySelector('.m-p-cat').value,
-                    date: card.querySelector('.m-p-date').value,
-                    description: card.querySelector('.m-p-desc').value,
-                    demoLink: card.querySelector('.m-p-demo').value,
-                    githubLink: card.querySelector('.m-p-git').value,
-                    tags: card.querySelector('.m-p-tags').value.split(',').map(s => s.trim()).filter(Boolean),
-                    image: card.querySelector('.m-p-img').value
+            const credBoxes = document.querySelectorAll('[data-cred-idx]');
+            if (credBoxes.length) {
+                s.credentialsGrid = Array.from(credBoxes).map(box => ({
+                    title: box.querySelector('.m-cred-title').value,
+                    period: box.querySelector('.m-cred-period').value,
+                    description: box.querySelector('.m-cred-desc').value
                 }));
             }
 
-        } else if (currentModalTab === 'journey') {
-            const c = portfolioData.contact;
-            const emailEl = document.getElementById('m-c-email');
-            if (emailEl) {
-                c.email = emailEl.value;
-                c.phone = document.getElementById('m-c-phone').value;
-                c.github = document.getElementById('m-c-github').value;
-                c.linkedin = document.getElementById('m-c-linkedin').value;
+        } else if (activeModalTab === 'achievements') {
+            const a = portfolioData.achievements;
+            if (val('m-a-intro1') !== null) a.introLeft = val('m-a-intro1');
+            if (val('m-a-intro2') !== null) a.introRight = val('m-a-intro2');
+
+            const achBoxes = document.querySelectorAll('[data-ach-idx]');
+            if (achBoxes.length) {
+                a.items = Array.from(achBoxes).map((box, i) => ({
+                    number: '0' + (i + 1),
+                    title: box.querySelector('.m-ach-title').value,
+                    organization: box.querySelector('.m-ach-org').value,
+                    year: box.querySelector('.m-ach-year').value,
+                    description: box.querySelector('.m-ach-desc').value
+                }));
             }
-            const jCards = document.querySelectorAll('[data-journey-idx]');
-            if (jCards.length) {
-                portfolioData.journey = Array.from(jCards).map(card => ({
-                    period: card.querySelector('.m-j-period').value,
-                    title: card.querySelector('.m-j-title').value,
-                    place: card.querySelector('.m-j-place').value,
-                    description: card.querySelector('.m-j-desc').value,
-                    type: 'milestone'
+
+        } else if (activeModalTab === 'passions') {
+            const p = portfolioData.passions;
+            if (val('m-p-desc') !== null) p.sidebarDesc = val('m-p-desc');
+            const pasBoxes = document.querySelectorAll('[data-passion-idx]');
+            if (pasBoxes.length) {
+                p.cards = Array.from(pasBoxes).map(box => ({
+                    title: box.querySelector('.m-pas-title').value,
+                    tag: box.querySelector('.m-pas-tag').value,
+                    image: box.querySelector('.m-pas-img').value,
+                    description: box.querySelector('.m-pas-desc').value
+                }));
+            }
+
+        } else if (activeModalTab === 'projects') {
+            const prBoxes = document.querySelectorAll('[data-proj-idx]');
+            if (prBoxes.length) {
+                portfolioData.projects.items = Array.from(prBoxes).map(box => ({
+                    title: box.querySelector('.m-pr-title').value,
+                    date: box.querySelector('.m-pr-date').value,
+                    location: box.querySelector('.m-pr-loc').value,
+                    image: box.querySelector('.m-pr-img').value,
+                    link: box.querySelector('.m-pr-link').value,
+                    description: box.querySelector('.m-pr-desc').value
                 }));
             }
         }
     }
 
-    // =====================================================================
-    // 9. EVENT LISTENERS & NAVIGATION
-    // =====================================================================
-    closedNotebookCard.addEventListener('click', () => openDiary('about'));
-
-    btnToggleBook.addEventListener('click', () => {
-        if (isBookOpen) {
-            closeDiary();
-        } else {
-            openDiary(currentSpread === 'cover' ? 'about' : currentSpread);
-        }
-    });
-
-    btnInlineEdit.addEventListener('click', () => toggleInlineEditMode());
-    btnFinishInlineEdit.addEventListener('click', () => toggleInlineEditMode(false));
-
-    document.getElementById('btn-open-modal').addEventListener('click', () => openModal('personal'));
-    document.getElementById('btn-close-modal').addEventListener('click', () => closeModal());
-
-    document.getElementById('btn-save-modal').addEventListener('click', () => {
-        collectCurrentModalTabInputs();
-        savePortfolioData();
-        closeModal();
-    });
-
+    // Export JSON & Reset Defaults
     document.getElementById('btn-export-json').addEventListener('click', () => {
-        collectCurrentModalTabInputs();
+        collectModalInputs();
         const blob = new Blob([JSON.stringify(portfolioData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'my-diary-portfolio-data.json';
+        a.download = 'student-portfolio-data.json';
         a.click();
         URL.revokeObjectURL(url);
     });
 
-    document.getElementById('btn-reset-data').addEventListener('click', () => {
-        if (confirm('Reset all diary details back to the initial template?')) {
+    document.getElementById('btn-reset-defaults').addEventListener('click', () => {
+        if (confirm('Reset all portfolio sections back to the default template?')) {
             localStorage.removeItem(STORAGE_KEY);
             portfolioData = structuredClone(DEFAULT_PORTFOLIO_DATA);
-            renderModalTabContent();
-            renderCover();
-            if (isBookOpen) renderCurrentSpread();
+            renderModalTab();
+            renderAll();
         }
     });
 
-    // Prev / Next Page Corner Buttons
-    const spreadsList = ['about', 'skills', 'projects', 'journey', 'contact'];
-    btnPrevSpread.addEventListener('click', () => {
-        const idx = spreadsList.indexOf(currentSpread);
-        if (idx <= 0) {
-            closeDiary();
-        } else {
-            switchToSpread(spreadsList[idx - 1], 'prev');
-        }
-    });
-
-    btnNextSpread.addEventListener('click', () => {
-        const idx = spreadsList.indexOf(currentSpread);
-        if (idx < spreadsList.length - 1) {
-            switchToSpread(spreadsList[idx + 1], 'next');
-        } else {
-            switchToSpread(spreadsList[0], 'next');
-        }
-    });
-
-    // Theme switcher
-    document.getElementById('btn-theme-switch').addEventListener('click', () => {
-        currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
-        document.body.classList.remove('theme-cream', 'theme-rose', 'theme-PureSketch');
-        const nextTheme = THEMES[currentThemeIndex];
-        if (nextTheme !== 'default') {
-            document.body.classList.add(nextTheme);
-        }
-    });
-
-    // Sound toggle
-    const btnSoundToggle = document.getElementById('btn-sound-toggle');
-    btnSoundToggle.addEventListener('click', () => {
-        soundEnabled = !soundEnabled;
-        btnSoundToggle.classList.toggle('active', soundEnabled);
-        btnSoundToggle.innerHTML = soundEnabled ? '🔊 Sound' : '🔇 Muted';
-    });
-
-    // Initialize Application
-    buildNotebookHardware();
-    renderCover();
+    // Initialize
+    renderAll();
 })();

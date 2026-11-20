@@ -3,192 +3,248 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Sketch Diary Portfolio ✨</title>
+    <title>Student Portfolio — Welcome</title>
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-    <!-- Interactive Doodle Canvas Overlay -->
-    <canvas id="doodle-canvas"></canvas>
+    <!-- Hidden File Input for Uploading Portrait Photo -->
+    <input type="file" id="portrait-upload-input" accept="image/*" style="display: none;" />
 
-    <!-- Hidden File Input for Polaroid Photo Upload -->
-    <input type="file" id="photo-upload-input" accept="image/*" style="display: none;" />
-
-    <!-- Top Floating Stationery Toolbar -->
-    <nav class="desk-toolbar" aria-label="Diary Controls">
-        <button class="toolbar-btn" id="btn-toggle-book" title="Close or Open Notebook">
-            📖 <span id="toggle-book-label">Open Diary</span>
-        </button>
-        <button class="toolbar-btn" id="btn-inline-edit" title="Click any text on the diary to edit directly">
-            ✏️ <span id="inline-edit-label">Edit On-Page: OFF</span>
-        </button>
-        <button class="toolbar-btn" id="btn-open-modal" title="Open Full Details Manager">
-            🗂️ Manage All Details
-        </button>
-        <button class="toolbar-btn" id="btn-doodle-mode" title="Sketch or doodle on the page with the pen">
-            🖊️ Sketch Pen
-        </button>
-        <button class="toolbar-btn" id="btn-theme-switch" title="Switch Notebook Aesthetic Theme">
-            🎨 Theme
-        </button>
-        <button class="toolbar-btn active" id="btn-sound-toggle" title="Toggle Page Flip Sound">
-            🔊 Sound
-        </button>
-    </nav>
-
-    <!-- Doodle Ink Palette (Visible when Sketch Pen is active) -->
-    <div class="doodle-palette" id="doodle-palette">
-        <span>Ink:</span>
-        <button class="ink-swatch selected" data-color="#1e1b18" data-size="2.8" style="background:#1e1b18;" title="Black Sketch Ink"></button>
-        <button class="ink-swatch" data-color="#2b547e" data-size="2.8" style="background:#2b547e;" title="Blue Ballpoint Ink"></button>
-        <button class="ink-swatch" data-color="#c85a32" data-size="2.8" style="background:#c85a32;" title="Red/Coral Marker"></button>
-        <button class="ink-swatch" data-color="#386641" data-size="2.8" style="background:#386641;" title="Forest Green Ink"></button>
-        <button class="ink-swatch" data-color="rgba(255, 230, 80, 0.55)" data-size="14" style="background:#ffe650;" title="Yellow Highlighter"></button>
-        <button class="sketch-btn-sm" id="btn-clear-doodles">🧽 Clear Ink</button>
-        <button class="sketch-btn-sm" id="btn-close-doodle">Done ✓</button>
+    <!-- Floating Banner when On-Page Edit Mode is Active -->
+    <div class="edit-banner" id="edit-banner">
+        <span>✏️ <strong>Edit Mode Active:</strong> Click any highlighted text on the page to edit your student intro, achievements, or passions directly!</span>
+        <button class="btn-back-welcome" id="btn-done-editing">Done ✓</button>
     </div>
 
-    <!-- Main Desk Workspace -->
-    <main class="workspace">
+    <!-- =====================================================================
+         1. FIRST PAGE: GREEN WELCOME SCREEN (Matches the Center Green Card)
+         ===================================================================== -->
+    <section class="welcome-screen" id="welcome-screen">
+        <!-- Top Row: Name + Contact / Address / Social Media + Quick Edit -->
+        <header class="welcome-top-bar">
+            <div class="welcome-brand-name" data-editable="welcome.name" id="w-name">
+                Sanjida Islam Maisha
+            </div>
 
-        <!-- Helper Banner when On-Page Edit Mode is Active -->
-        <div class="edit-mode-banner" id="edit-mode-banner">
-            <span>✨ <strong>On-Page Edit Mode ON:</strong> Click any highlighted text inside the diary to rewrite it! Your changes save automatically.</span>
-            <button class="sketch-btn-sm" id="btn-finish-inline-edit">Done Editing ✓</button>
+            <div class="welcome-meta-col">
+                <div class="welcome-meta-label">CONTACT</div>
+                <div data-editable="welcome.email" id="w-email">sanjida.maisha@example.com</div>
+                <div data-editable="welcome.phone" id="w-phone">+880 1XXX-XXXXXX</div>
+            </div>
+
+            <div class="welcome-meta-col">
+                <div class="welcome-meta-label">ADDRESS</div>
+                <div data-editable="welcome.addressLine1" id="w-addr1">Department of CSE</div>
+                <div data-editable="welcome.addressLine2" id="w-addr2">Dhaka, Bangladesh</div>
+            </div>
+
+            <div class="welcome-meta-col">
+                <div class="welcome-meta-label">SOCIAL MEDIA</div>
+                <div data-editable="welcome.socialLine1" id="w-soc1">@sanjida5102</div>
+                <div data-editable="welcome.socialLine2" id="w-soc2">github.com/sanjida5102</div>
+            </div>
+
+            <div class="welcome-top-actions">
+                <button class="ghost-pill-btn" id="btn-welcome-edit" title="Customize Welcome & Portfolio Details">
+                    ⚙️ Customize
+                </button>
+            </div>
+        </header>
+
+        <!-- Bottom Area: Large Outlined "Student" + Solid Terracotta "Portfolio" + Corner Enter Button -->
+        <div class="welcome-bottom-area">
+            <div class="welcome-hero-titles">
+                <div class="welcome-year-tag" data-editable="welcome.yearRange" id="w-year">
+                    2022 – 2026
+                </div>
+                <span class="welcome-outline-word" data-editable="welcome.outlineTitle" id="w-outline">
+                    Student
+                </span>
+                <span class="welcome-solid-word" data-editable="welcome.solidTitle" id="w-solid">
+                    Portfolio
+                </span>
+                <p class="welcome-greeting-text" data-editable="welcome.welcomeSubtitle" id="w-subtitle">
+                    Welcome to my personal space — exploring my journey as a student, my achievements, and the passions that drive me every day.
+                </p>
+            </div>
+
+            <!-- Corner Button for Entering the Main Page -->
+            <div class="corner-enter-wrapper">
+                <span class="corner-enter-hint">Welcome • Click to Explore</span>
+                <button class="btn-enter-main" id="btn-enter-main">
+                    <span id="w-enter-text">Enter Main Page</span>
+                    <span class="btn-enter-arrow">↗</span>
+                </button>
+            </div>
         </div>
+    </section>
 
-        <div class="notebook-container">
+    <!-- =====================================================================
+         2. MAIN PORTFOLIO PAGE (Structured like the Surrounding Templates)
+         ===================================================================== -->
+    <div class="main-portfolio-wrapper" id="main-portfolio-wrapper">
 
-            <!-- =========================================================
-                 VIEW 1: CLOSED SPIRAL NOTEBOOK COVER (Ref Image 2 & 1)
-                 ========================================================= -->
-            <section class="notebook-cover-view active" id="cover-view">
-                <div class="sketch-notebook-closed" id="closed-notebook-card" title="Click to open diary">
-                    
-                    <!-- Peeking Side Index Tabs (Ref Image 1) -->
-                    <div class="cover-peeking-tabs" id="cover-peeking-tabs"></div>
+        <!-- Sticky Navigation Bar -->
+        <nav class="sticky-top-nav" aria-label="Portfolio Navigation">
+            <div class="nav-left-brand">
+                <button class="btn-back-welcome" id="btn-show-welcome" title="Return to the Green Welcome Screen">
+                    ← Welcome Page
+                </button>
+                <span class="nav-brand-title" id="nav-student-name">Sanjida Islam Maisha</span>
+            </div>
 
-                    <!-- 3D Stacked Paper Edges on Right & Bottom (Ref Image 2) -->
-                    <div class="closed-pages-block"></div>
+            <div class="nav-section-links">
+                <a href="#sec-contents" class="nav-jump-link">Contents</a>
+                <a href="#sec-student-intro" class="nav-jump-link">01 Student Intro</a>
+                <a href="#sec-achievements" class="nav-jump-link">02 Achievements</a>
+                <a href="#sec-passions" class="nav-jump-link">03 Passions</a>
+                <a href="#sec-projects" class="nav-jump-link">04 Works & Contact</a>
+            </div>
 
-                    <!-- Left Hand-Drawn Black Spiral Rings (Ref Image 2) -->
-                    <div class="closed-spiral-rings" id="closed-spiral-rings"></div>
+            <div class="nav-right-tools">
+                <button class="tool-pill-btn" id="btn-toggle-inline-edit" title="Click text directly on any template to edit">
+                    ✏️ Edit On-Page: OFF
+                </button>
+                <button class="tool-pill-btn" id="btn-open-customizer" title="Open Full Details Manager">
+                    🗂️ Edit All Details
+                </button>
+            </div>
+        </nav>
 
-                    <!-- Green Sketch Cover Board -->
-                    <div class="closed-cover-board">
-                        
-                        <!-- Tilted Cream "NOTE BOOK" Patch (Ref Image 2) -->
-                        <div class="cover-sticker-patch">
-                            <div class="sticker-note-word" id="cover-word-top">NOTE</div>
-                            <div class="sticker-note-word" id="cover-word-bottom">BOOK</div>
-                            <div class="sticker-owner-line" id="cover-owner-text">Belongs to: Sanjida Islam ✨</div>
+        <!-- Editorial Template Deck -->
+        <main class="templates-deck">
+
+            <!-- =============================================================
+                 TEMPLATE SLIDE 1: CONTENTS (Matches Top-Left Slide in Picture)
+                 ============================================================= -->
+            <section class="template-slide slide-contents" id="sec-contents">
+                <div class="contents-terracotta-left">
+                    <div>
+                        <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:10px;">
+                            INDEX & OVERVIEW
                         </div>
-
-                        <!-- Personal Role & Tagline Sticker -->
-                        <div class="cover-doodle-card">
-                            <div class="cover-doodle-title" id="cover-role-title">Frontend Developer & Creative Designer</div>
-                            <div class="cover-doodle-sub" id="cover-tagline-text">Personal Sketchbook, Biodata & Portfolio</div>
-                        </div>
-
-                        <!-- Open Diary Prompt -->
-                        <div class="open-diary-cta">
-                            <span>Open My Diary</span>
-                            <span>➔</span>
-                        </div>
+                        <h3>A curated look into my student life, milestones & creative spirit.</h3>
                     </div>
+                    <p>
+                        Click any chapter on the right to jump directly to my student introduction, academic achievements, or personal passions.
+                    </p>
+                </div>
+
+                <div class="contents-white-center">
+                    <ul class="toc-list">
+                        <li><a href="#sec-student-intro"><span class="toc-num">ABOUT</span> <span>MY STORY</span></a></li>
+                        <li><a href="#sec-student-intro"><span class="toc-num">01</span> <span>STUDENT INTRO & EDUCATION</span></a></li>
+                        <li><a href="#sec-achievements"><span class="toc-num">02</span> <span>ACHIEVEMENTS & HONORS</span></a></li>
+                        <li><a href="#sec-passions"><span class="toc-num">03</span> <span>PASSIONS & INTERESTS</span></a></li>
+                        <li><a href="#sec-projects"><span class="toc-num">04</span> <span>STUDENT WORKS & CONTACT</span></a></li>
+                    </ul>
+
+                    <div class="contents-big-heading">Contents</div>
+                </div>
+
+                <!-- Right Geometric Strip (Green circles on Apricot) -->
+                <div class="bauhaus-strip-green" aria-hidden="true">
+                    <div class="bauhaus-circle-tile"></div>
+                    <div class="bauhaus-circle-tile"></div>
+                    <div class="bauhaus-circle-tile"></div>
+                    <div class="bauhaus-circle-tile"></div>
+                    <div class="bauhaus-circle-tile"></div>
                 </div>
             </section>
 
-            <!-- =========================================================
-                 VIEW 2: OPEN TWO-PAGE SPIRAL DIARY (Ref Image 3 & 1)
-                 ========================================================= -->
-            <section class="notebook-open-view" id="open-view">
-                <div class="open-notebook-shell">
+            <!-- =============================================================
+                 TEMPLATE SLIDE 2: STUDENT INTRO / ABOUT (Matches Top-Right Slide)
+                 ============================================================= -->
+            <section class="template-slide slide-about" id="sec-student-intro">
+                <!-- Left Deep Forest Green Column -->
+                <div class="about-green-panel" id="about-green-panel"></div>
 
-                    <!-- Right-Hand Colorful Index Tabs (Ref Image 1 & 3) -->
-                    <div class="index-tabs-rail" id="index-tabs-rail"></div>
-
-                    <!-- Two-Page Spread + Center Spiral Spine -->
-                    <div class="open-book-spread" id="open-book-spread">
-                        
-                        <!-- LEFT PAGE -->
-                        <article class="book-page left-page" id="left-page">
-                            <div id="left-page-body"></div>
-                            <div class="page-footer-nav">
-                                <button class="corner-flip-btn" id="btn-prev-spread">← Prev Page</button>
-                                <span id="left-page-number">Page 01</span>
-                            </div>
-                        </article>
-
-                        <!-- CENTER SPIRAL BINDING RINGS (Ref Image 3) -->
-                        <div class="center-spiral-column" id="center-spiral-column" aria-hidden="true"></div>
-
-                        <!-- RIGHT PAGE -->
-                        <article class="book-page right-page" id="right-page">
-                            <div id="right-page-body"></div>
-                            <div class="page-footer-nav">
-                                <span id="right-page-number">Page 02</span>
-                                <button class="corner-flip-btn" id="btn-next-spread">Next Page →</button>
-                            </div>
-                        </article>
-
+                <!-- Center Portrait Photo with Diagonal Hatch Stripes -->
+                <div class="about-photo-panel">
+                    <div class="student-portrait-wrapper">
+                        <button class="btn-upload-portrait" id="btn-change-portrait" title="Upload your own photo">
+                            📷 Change Photo
+                        </button>
+                        <img id="student-portrait-img" src="" alt="Student Portrait" />
+                        <div class="diagonal-hatch-badge" aria-hidden="true">
+                            <div class="hatch-row-coral"></div>
+                            <div class="hatch-row-green"></div>
+                        </div>
                     </div>
+                </div>
 
-                    <!-- Resting Yellow/Orange Pen on Right Page (Exact match to Ref Image 3) -->
-                    <div class="resting-pen" id="resting-pen" title="Click to pick up pen & doodle!">
-                        <div class="pen-badge-hint">✏️ Click to Doodle</div>
-                        <svg width="42" height="210" viewBox="0 0 42 210" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Top Clicker -->
-                            <rect x="17" y="4" width="8" height="12" rx="2" fill="#1E1B18" stroke="#1E1B18" stroke-width="2"/>
-                            <!-- Black Side Clip -->
-                            <path d="M25 22H33C35 22 36 24 36 27V68C36 70 34 71 32 69L26 62" stroke="#1E1B18" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <!-- Main Yellow/Orange Pen Barrel -->
-                            <rect x="14" y="15" width="14" height="150" rx="3" fill="#F4A922" stroke="#1E1B18" stroke-width="2.5"/>
-                            <!-- Subtle Barrel Highlight -->
-                            <line x1="18" y1="20" x2="18" y2="160" stroke="#FFD166" stroke-width="2" stroke-linecap="round"/>
-                            <!-- Dark Cone Tip -->
-                            <polygon points="14,165 28,165 23,195 19,195" fill="#2B2D42" stroke="#1E1B18" stroke-width="2.5" stroke-linejoin="round"/>
-                            <!-- Fine Ballpoint Nib -->
-                            <polygon points="19,195 23,195 21,207" fill="#8D99AE" stroke="#1E1B18" stroke-width="1.8"/>
-                        </svg>
-                    </div>
+                <!-- Right Soft Apricot 2x2 Credentials Column -->
+                <div class="about-apricot-panel" id="about-apricot-panel"></div>
+            </section>
 
+            <!-- =============================================================
+                 TEMPLATE SLIDE 3: ACHIEVEMENTS (Matches Bottom-Right Apricot & Geometric Slide)
+                 ============================================================= -->
+            <section class="template-slide slide-achievements" id="sec-achievements">
+                <div class="achievements-main-area" id="achievements-main-area"></div>
+
+                <!-- Geometric Terracotta & Apricot Semi-Circle Bauhaus Block -->
+                <div class="bauhaus-terracotta-panel" aria-hidden="true">
+                    <div class="geo-semi bottom-round"></div>
+                    <div class="geo-semi left-round"></div>
+                    <div class="geo-semi top-round"></div>
+                    <div class="geo-semi right-round"></div>
+                    <div class="geo-semi left-round"></div>
+                    <div class="geo-semi bottom-round"></div>
+                    <div class="geo-semi right-round"></div>
+                    <div class="geo-semi top-round"></div>
                 </div>
             </section>
 
-        </div>
-    </main>
+            <!-- =============================================================
+                 TEMPLATE SLIDE 4: MY PASSIONS (Matches Bottom-Left Pistachio + 2x2 Grid)
+                 ============================================================= -->
+            <section class="template-slide slide-passions" id="sec-passions">
+                <!-- Left Pistachio Green Column -->
+                <div class="passions-pistachio-sidebar" id="passions-pistachio-sidebar"></div>
 
-    <!-- =========================================================
-         FULL PORTFOLIO DETAILS MANAGER MODAL
-         ========================================================= -->
-    <div class="customizer-modal" id="customizer-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <div class="modal-paper">
-            <div class="modal-top-bar">
-                <h2 id="modal-title">📓 Fill In Your Diary & Personal Infos</h2>
-                <button class="sketch-btn-sm" id="btn-close-modal">✕ Close</button>
+                <!-- Right White 2x2 Visual Photo Grid -->
+                <div class="passions-white-collage" id="passions-white-collage"></div>
+            </section>
+
+            <!-- =============================================================
+                 TEMPLATE SLIDE 5: STUDENT WORKS & CONTACT (Matches White/Green Project Cards)
+                 ============================================================= -->
+            <section class="template-slide slide-projects-contact" id="sec-projects">
+                <div class="projects-white-panel" id="projects-white-panel"></div>
+                <div class="contact-green-panel" id="contact-green-panel"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- =====================================================================
+         3. FULL DETAILS MANAGER MODAL (EDIT INTRO, ACHIEVEMENTS, PASSIONS)
+         ===================================================================== -->
+    <div class="modal-backdrop" id="customizer-modal" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h2>Edit Your Student Portfolio Details</h2>
+                <button class="ghost-pill-btn" id="btn-close-modal">✕ Close</button>
             </div>
 
-            <div class="modal-tabs" id="modal-tabs">
-                <button class="modal-tab-btn active" data-mtab="personal">👤 Personal Infos & Bio</button>
-                <button class="modal-tab-btn" data-mtab="favorites">💖 Favorites & Hobbies</button>
-                <button class="modal-tab-btn" data-mtab="skills">🛠️ Skills & Stickers</button>
-                <button class="modal-tab-btn" data-mtab="projects">🚀 My Projects</button>
-                <button class="modal-tab-btn" data-mtab="journey">🎓 Journey & Contact</button>
+            <div class="modal-tab-bar">
+                <button class="m-tab-btn active" data-tab="welcome">1. Green Welcome Page</button>
+                <button class="m-tab-btn" data-tab="intro">2. Student Intro & Education</button>
+                <button class="m-tab-btn" data-tab="achievements">3. Achievements</button>
+                <button class="m-tab-btn" data-tab="passions">4. My Passions</button>
+                <button class="m-tab-btn" data-tab="projects">5. Student Works</button>
             </div>
 
-            <div class="modal-body-scroll" id="modal-tab-content">
-                <!-- Populated dynamically by script.js -->
-            </div>
+            <div class="modal-content-area" id="modal-content-area"></div>
 
-            <div class="modal-bottom-bar">
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    <button class="sketch-btn-sm" id="btn-export-json" title="Download your data as a JSON backup">💾 Export JSON</button>
-                    <button class="sketch-btn-sm" id="btn-reset-data" style="background:#ffd8be;" title="Restore default template data">↺ Reset Defaults</button>
+            <div class="modal-footer">
+                <div style="display:flex; gap:8px;">
+                    <button class="m-tab-btn" id="btn-export-json">💾 Export JSON</button>
+                    <button class="m-tab-btn" id="btn-reset-defaults" style="color:#c06044;">↺ Reset Defaults</button>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="toolbar-btn" id="btn-save-modal" style="background:var(--cover-green); color:#fff;">✓ Save All Changes</button>
-                </div>
+                <button class="btn-terracotta-submit" id="btn-save-modal">✓ Save All Changes</button>
             </div>
         </div>
     </div>

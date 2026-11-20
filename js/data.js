@@ -1,178 +1,148 @@
 // =========================================================================
-// Default Aesthetic Diary Portfolio Data
-// You can edit your personal details directly inside the Diary UI ("Edit Diary" button)
-// or modify this file directly!
+// Editorial Green, Terracotta & Pistachio Portfolio Data
+// You can edit everything directly on the website using "Edit On-Page"
+// or the "Edit Details" manager!
 // =========================================================================
 
 const DEFAULT_PORTFOLIO_DATA = {
-    diaryMeta: {
-        coverLabelTop: "NOTE",
-        coverLabelBottom: "BOOK",
-        coverOwnerText: "Belongs to: Sanjida Islam ✨",
-        diaryYear: "2026 Edition",
-        theme: "classic-sketch"
+    welcome: {
+        name: "Sanjida Islam Maisha",
+        yearRange: "2022 – 2026",
+        outlineTitle: "Student",
+        solidTitle: "Portfolio",
+        welcomeSubtitle: "Welcome to my personal space — exploring my journey as a student, my achievements, and the passions that drive me every day.",
+        email: "sanjida.maisha@example.com",
+        phone: "+880 1XXX-XXXXXX",
+        addressLine1: "Department of CSE",
+        addressLine2: "Dhaka, Bangladesh",
+        socialLine1: "@sanjida5102",
+        socialLine2: "github.com/sanjida5102",
+        enterBtnText: "Enter Main Page"
     },
-    profile: {
-        name: "Sanjida Islam",
-        nickname: "Sanjida",
-        title: "Frontend Developer & Creative Designer",
-        tagline: "Sketching ideas & turning coffee into cozy web experiences ✨",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
-        polaroidCaption: "me & my little world ♡",
-        birthday: "October 18",
-        location: "Dhaka, Bangladesh",
-        educationShort: "B.Sc. in Computer Science",
-        languages: "Bengali, English",
-        mbtiOrVibe: "INFJ • Creative Dreamer",
-        status: "Open to opportunities & collaborations 🌱",
-        dearDiaryDate: "Nov 11, 2026 — Wednesday",
-        weatherMood: "☀️ Sunny & Inspired",
-        bio: "Dear Visitor,\nWelcome to my personal sketch diary! I'm Sanjida, a passionate developer and creative soul who loves building warm, human-centered digital spaces. Instead of a boring resume, I wanted to share my world the way I plan my life — inside a scribbled notebook filled with snapshots, sticky notes, and dreams.",
-        bioSecondParagraph: "When I'm not coding or designing interfaces, you'll probably find me doodling in margins, collecting cute stationery, brewing iced coffee, or exploring new tech ideas late at night.",
-        favorites: [
-            { label: "☕ Drink", value: "Iced Caramel Latte & Masala Tea" },
-            { label: "🎨 Aesthetic", value: "Vintage Sketchbooks, Warm Minimal" },
-            { label: "🎵 Music", value: "Lo-Fi Beats, Indie Acoustic, Rain Sounds" },
-            { label: "📚 Pastime", value: "Journaling, UI Sketching, Photography" }
-        ],
-        hobbies: [
-            "✏️ Sketching & Doodling",
-            "💻 Creative Coding",
-            "📸 Photography",
-            "☕ Cafe Hopping",
-            "📖 Reading Fiction",
-            "🎨 UI/UX Design"
-        ],
-        stickyNoteQuote: "\"Create things that make the internet feel like a cozy, handmade place again.\""
-    },
-    tabs: [
-        { id: "cover", label: "Cover", color: "#52796f" },
-        { id: "about", label: "My Info", color: "#f4a261" },
-        { id: "skills", label: "Skills", color: "#e76f51" },
-        { id: "projects", label: "Works", color: "#81b29a" },
-        { id: "journey", label: "Journey", color: "#457b9d" },
-        { id: "contact", label: "Notes", color: "#e9c46a" }
-    ],
-    skills: {
-        leftPageTitle: "Technical Sketchbook 🛠️",
-        rightPageTitle: "Tools & Superpowers ✨",
-        categories: [
+    studentIntro: {
+        sectionNumber: "01",
+        heading: "About",
+        subHeading: "Student Profile & Introduction",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
+        bioParagraph1: "Hello! I am Sanjida Islam Maisha, an enthusiastic and dedicated student with a deep curiosity for technology, design, and creative problem-solving. My academic journey has shaped me into a disciplined learner who loves turning theoretical ideas into meaningful real-world projects.",
+        bioParagraph2: "Whether working on university coursework, collaborating on group research, or exploring new creative skills on my own, I always strive to grow with purpose, empathy, and originality.",
+        quickContactLabel: "ACADEMIC & PERSONAL INFO",
+        quickInfoLine1: "B.Sc. Student • Computer Science & Engineering",
+        quickInfoLine2: "Dhaka, Bangladesh • Open to Research & Internships",
+        credentialsGrid: [
             {
-                name: "Code & Development",
-                items: [
-                    { name: "HTML5 & Semantic Structure", level: 95, note: "Daily driver" },
-                    { name: "CSS3 / Animations / Grid", level: 92, note: "Love styling!" },
-                    { name: "JavaScript (ES6+)", level: 88, note: "Interactive magic" },
-                    { name: "React & Modern UI", level: 84, note: "Component craft" },
-                    { name: "Tailwind & Responsive Design", level: 90, note: "Pixel-perfect" }
-                ]
+                title: "B.SC. IN COMPUTER SCIENCE",
+                period: "2022 – 2026 (Current Student)",
+                description: "Focusing on software development, data structures, algorithms, web technologies, and human-computer interaction."
             },
             {
-                name: "Design & Workflow",
-                items: [
-                    { name: "Figma & Wireframe Sketching", level: 88, note: "Visualizing" },
-                    { name: "Git & GitHub Workflow", level: 85, note: "Version control" },
-                    { name: "Problem Solving & Logic", level: 86, note: "Clean code" }
-                ]
-            }
-        ],
-        stickers: [
-            "JavaScript", "HTML5", "CSS3", "React", "Figma",
-            "Git & GitHub", "UI/UX", "Responsive Web", "REST APIs",
-            "Creative Coding", "Canva", "VS Code"
-        ],
-        currentlyLearning: "Exploring interactive 3D web animations, micro-interactions, and full-stack architecture!"
-    },
-    projects: [
-        {
-            id: 1,
-            title: "Aesthetic Sketch Diary Portfolio",
-            category: "Interactive Web App",
-            date: "Nov 2026",
-            description: "A hand-drawn spiral notebook portfolio with realistic page turns, editable personal biodata, custom doodle pen, and paper textures.",
-            tags: ["HTML5", "CSS3", "JavaScript", "SVG Sketch"],
-            image: "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=600&q=80",
-            demoLink: "#about",
-            githubLink: "https://github.com/sanjida5102/My-portfolio"
-        },
-        {
-            id: 2,
-            title: "Cozy Study & Focus Space",
-            category: "Productivity Tool",
-            date: "Sep 2026",
-            description: "A virtual desk companion with a Pomodoro timer, ambient rain/cafe audio mixer, and sticky-note task tracker.",
-            tags: ["React", "Tailwind", "Web Audio", "LocalStorage"],
-            image: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=600&q=80",
-            demoLink: "https://github.com/sanjida5102",
-            githubLink: "https://github.com/sanjida5102"
-        },
-        {
-            id: 3,
-            title: "Artisan Coffee & Bookshop UI",
-            category: "E-Commerce Concept",
-            date: "Jul 2026",
-            description: "Warm editorial storefront designed for an independent bookstore and cafe, featuring smooth menu filters and book previews.",
-            tags: ["JavaScript", "CSS Grid", "UI Design"],
-            image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80",
-            demoLink: "https://github.com/sanjida5102",
-            githubLink: "https://github.com/sanjida5102"
-        },
-        {
-            id: 4,
-            title: "Personal Weather & Mood Log",
-            category: "Web Experiment",
-            date: "May 2026",
-            description: "Minimalist daily logger that pairs live local weather forecasts with custom hand-drawn weather icons and journal prompts.",
-            tags: ["REST API", "JavaScript", "SVG Art"],
-            image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=600&q=80",
-            demoLink: "https://github.com/sanjida5102",
-            githubLink: "https://github.com/sanjida5102"
-        }
-    ],
-    journey: [
-        {
-            period: "2025 - Present",
-            title: "Frontend Developer & Designer",
-            place: "Freelance & Personal Studio",
-            type: "work",
-            description: "Crafting bespoke portfolios, interactive web experiences, and clean user interfaces with a personal artistic touch."
-        },
-        {
-            period: "2022 - 2026",
-            title: "Bachelor of Science in CSE",
-            place: "University Studies",
-            type: "education",
-            description: "Deepened my foundation in software engineering, algorithms, database systems, and human-computer interaction."
-        },
-        {
-            period: "2023",
-            title: "UI/UX & Web Design Exploration",
-            place: "Design Communities & Hackathons",
-            type: "milestone",
-            description: "Started blending hand-drawn illustrations and paper metaphors into modern responsive websites."
-        },
-        {
-            period: "2021",
-            title: "Wrote My First 'Hello World'",
-            place: "Home Desk",
-            type: "milestone",
-            description: "Discovered the joy of turning blank screens into living, breathing creations with HTML, CSS & JS."
-        }
-    ],
-    contact: {
-        email: "sanjida@example.com",
-        phone: "+880 1XXX-XXXXXX",
-        location: "Dhaka, Bangladesh",
-        github: "https://github.com/sanjida5102",
-        linkedin: "https://linkedin.com",
-        instagram: "https://instagram.com",
-        facebook: "https://facebook.com",
-        note: "Feel free to tear off a note or send me a letter! I'd love to hear from you about projects, internships, or creative ideas.",
-        guestbookEntries: [
+                title: "HIGHER SECONDARY (HSC)",
+                period: "2020 – 2022 • Science Group",
+                description: "Completed higher secondary education with strong academic standing in Mathematics, Physics, and ICT."
+            },
             {
-                name: "A Fellow Traveler",
-                date: "Nov 2026",
-                message: "Such a cozy and creative diary portfolio! Feels just like flipping through a real sketchbook. ✨"
+                title: "ACADEMIC INTERESTS",
+                period: "Core Focus Areas",
+                description: "Frontend Engineering, UI/UX Architecture, Creative Coding, and Artificial Intelligence applications."
+            },
+            {
+                title: "CAMPUS & LEADERSHIP",
+                period: "Active Student Member",
+                description: "Participating in tech clubs, coding workshops, design seminars, and peer study groups."
+            }
+        ]
+    },
+    achievements: {
+        sectionNumber: "02",
+        heading: "Achievements",
+        subtitle: "Milestones, honors, certifications & proud student moments",
+        introLeft: "Throughout my academic life, every challenge has taught me resilience. Here are some of the milestones, competitions, and certifications I am proud to have accomplished as a student.",
+        introRight: "I believe achievements are not just trophies—they represent late-night study sessions, teamwork, curiosity, and the courage to try new things outside my comfort zone.",
+        items: [
+            {
+                number: "01",
+                title: "Academic Excellence & Dean's Honor List",
+                year: "2024 – 2025",
+                organization: "University Department of CSE",
+                description: "Recognized for maintaining strong academic performance across core computer science and software engineering courses."
+            },
+            {
+                number: "02",
+                title: "Inter-University Web & UI Design Showcase",
+                year: "2025",
+                organization: "Student Tech Fest",
+                description: "Designed and presented an interactive responsive web application praised for visual storytelling and clean usability."
+            },
+            {
+                number: "03",
+                title: "Frontend Web Development Certification",
+                year: "2024",
+                organization: "Online Learning & Bootcamp",
+                description: "Completed intensive coursework in modern HTML5, CSS3 architecture, JavaScript (ES6+), and responsive design systems."
+            },
+            {
+                number: "04",
+                title: "Campus Cultural & Tech Club Coordinator",
+                year: "2023 – Present",
+                organization: "University Student Club",
+                description: "Organized student workshops, mentored junior classmates, and coordinated creative design materials for campus events."
+            }
+        ]
+    },
+    passions: {
+        sectionNumber: "03",
+        heading: "My Passions",
+        subtitle: "What inspires me beyond the classroom",
+        sidebarDesc: "Beyond textbooks and exams, my passions keep my creativity alive. They shape how I see the world, how I design, and who I aspire to become.",
+        metaLabel: "PASSION PILLARS",
+        metaLine1: "Creativity • Technology",
+        metaLine2: "Art • Lifelong Learning",
+        cards: [
+            {
+                title: "Creative Web & UI Design",
+                tag: "Digital Craft",
+                image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=600&q=80",
+                description: "Crafting aesthetic, thoughtful interfaces where color palettes, typography, and code come together harmoniously."
+            },
+            {
+                title: "Sketching & Visual Art",
+                tag: "Art & Illustration",
+                image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=600&q=80",
+                description: "Expressing ideas through colours, journals, and visual compositions that bring warmth to everyday moments."
+            },
+            {
+                title: "Photography & Aesthetics",
+                tag: "Visual Storytelling",
+                image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80",
+                description: "Capturing natural light, nature, architecture, and quiet everyday details through my lens."
+            },
+            {
+                title: "Reading & Self-Growth",
+                tag: "Curiosity",
+                image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
+                description: "Exploring books, learning new technologies, and participating in meaningful student community initiatives."
+            }
+        ]
+    },
+    projects: {
+        sectionNumber: "04",
+        heading: "Student Works",
+        items: [
+            {
+                title: "Editorial Design Portfolio",
+                date: "2026",
+                location: "Personal Web Project",
+                image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80",
+                description: "A modern magazine-inspired student portfolio built with an emerald-green, terracotta, and pistachio editorial layout.",
+                link: "https://github.com/sanjida5102/My-portfolio"
+            },
+            {
+                title: "University Study Companion",
+                date: "2025",
+                location: "Academic Project",
+                image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80",
+                description: "An organized coursework tracker, CGPA calculator, and deadline planner designed for university students.",
+                link: "https://github.com/sanjida5102"
             }
         ]
     }
