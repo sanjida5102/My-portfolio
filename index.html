@@ -3,248 +3,179 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Student Portfolio — Welcome</title>
+    <title>Sanjida Maisha — Portfolio</title>
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-    <!-- Hidden File Input for Uploading Portrait Photo -->
-    <input type="file" id="portrait-upload-input" accept="image/*" style="display: none;" />
+    <!-- Cinematic Multi-Layer Page Transition Curtain -->
+    <div class="page-transition-curtain" id="page-transition-curtain" aria-hidden="true">
+        <div class="curtain-layer-1"></div>
+        <div class="curtain-layer-2">
+            <span class="curtain-monogram">SANJIDA MAISHA • PORTFOLIO</span>
+        </div>
+    </div>
 
-    <!-- Floating Banner when On-Page Edit Mode is Active -->
-    <div class="edit-banner" id="edit-banner">
-        <span>✏️ <strong>Edit Mode Active:</strong> Click any highlighted text on the page to edit your student intro, achievements, or passions directly!</span>
-        <button class="btn-back-welcome" id="btn-done-editing">Done ✓</button>
+    <!-- Floating Edit Mode Helper Bar (Visible when On-Page Click-to-Edit is active) -->
+    <div class="inline-edit-banner" id="inline-edit-banner">
+        <span>✏️ <strong>On-Page Edit Active:</strong> Click any highlighted text to type directly, or open the Full Editor to add/remove items.</span>
+        <div style="display:flex; gap:8px;">
+            <button class="banner-action-btn" id="btn-banner-open-modal">🗂️ Full Editor</button>
+            <button class="banner-action-btn done" id="btn-banner-done">✓ Done</button>
+        </div>
     </div>
 
     <!-- =====================================================================
-         1. FIRST PAGE: GREEN WELCOME SCREEN (Matches the Center Green Card)
+         1. FRONT PAGE (HOME): SHADED ASH-GREEN STUDIO HERO
          ===================================================================== -->
     <section class="welcome-screen" id="welcome-screen">
-        <!-- Top Row: Name + Contact / Address / Social Media + Quick Edit -->
-        <header class="welcome-top-bar">
-            <div class="welcome-brand-name" data-editable="welcome.name" id="w-name">
-                Sanjida Islam Maisha
+
+        <!-- Top Bar: Option Bar at the Top-Left Corner + Edit Option & Brand -->
+        <header class="hero-top-nav">
+            <!-- Top-Left Option Bar containing all 6 options -->
+            <div class="option-bar-wrapper">
+                <nav class="unified-option-bar" aria-label="Main Option Bar">
+                    <button class="option-bar-item active" data-target="home">Home</button>
+                    <button class="option-bar-item" data-target="sec-student-intro">Student info</button>
+                    <button class="option-bar-item" data-target="sec-achievements">Achievement</button>
+                    <button class="option-bar-item" data-target="sec-passions">Passions</button>
+                    <button class="option-bar-item" data-target="sec-projects">Works</button>
+                    <button class="option-bar-item" data-target="sec-contact">Contact details</button>
+                </nav>
             </div>
 
-            <div class="welcome-meta-col">
-                <div class="welcome-meta-label">CONTACT</div>
-                <div data-editable="welcome.email" id="w-email">sanjida.maisha@example.com</div>
-                <div data-editable="welcome.phone" id="w-phone">+880 1XXX-XXXXXX</div>
-            </div>
-
-            <div class="welcome-meta-col">
-                <div class="welcome-meta-label">ADDRESS</div>
-                <div data-editable="welcome.addressLine1" id="w-addr1">Department of CSE</div>
-                <div data-editable="welcome.addressLine2" id="w-addr2">Dhaka, Bangladesh</div>
-            </div>
-
-            <div class="welcome-meta-col">
-                <div class="welcome-meta-label">SOCIAL MEDIA</div>
-                <div data-editable="welcome.socialLine1" id="w-soc1">@sanjida5102</div>
-                <div data-editable="welcome.socialLine2" id="w-soc2">github.com/sanjida5102</div>
-            </div>
-
-            <div class="welcome-top-actions">
-                <button class="ghost-pill-btn" id="btn-welcome-edit" title="Customize Welcome & Portfolio Details">
-                    ⚙️ Customize
+            <!-- Top-Right Name, Portfolio Tag & Edit Option -->
+            <div class="header-brand-portion">
+                <button class="edit-trigger-btn" id="btn-hero-edit" title="Edit all portfolio information">
+                    ✏️ Edit Info
                 </button>
+                <span class="brand-name-keep" data-editable="welcome.fullName" id="hero-brand-fullname">SANJIDA MAISHA</span>
+                <span class="brand-divider">/</span>
+                <span class="brand-portfolio-word">PORTFOLIO</span>
             </div>
         </header>
 
-        <!-- Bottom Area: Large Outlined "Student" + Solid Terracotta "Portfolio" + Corner Enter Button -->
-        <div class="welcome-bottom-area">
-            <div class="welcome-hero-titles">
-                <div class="welcome-year-tag" data-editable="welcome.yearRange" id="w-year">
-                    2022 – 2026
-                </div>
-                <span class="welcome-outline-word" data-editable="welcome.outlineTitle" id="w-outline">
-                    Student
-                </span>
-                <span class="welcome-solid-word" data-editable="welcome.solidTitle" id="w-solid">
-                    Portfolio
-                </span>
-                <p class="welcome-greeting-text" data-editable="welcome.welcomeSubtitle" id="w-subtitle">
-                    Welcome to my personal space — exploring my journey as a student, my achievements, and the passions that drive me every day.
-                </p>
+        <!-- Main Center Stage: Giant Split "SANJIDA" & "MAISHA" + "PORTFOLIO" -->
+        <div class="hero-stage" id="hero-stage">
+
+            <!-- Subtle Ambient Center Studio Ring / Accent -->
+            <div class="hero-studio-orb" aria-hidden="true"></div>
+
+            <!-- Left Giant First Name ("SANJIDA") -->
+            <div class="hero-name-left" data-editable="welcome.firstName" id="hero-first-name">
+                SANJIDA
             </div>
 
-            <!-- Corner Button for Entering the Main Page -->
-            <div class="corner-enter-wrapper">
-                <span class="corner-enter-hint">Welcome • Click to Explore</span>
-                <button class="btn-enter-main" id="btn-enter-main">
-                    <span id="w-enter-text">Enter Main Page</span>
-                    <span class="btn-enter-arrow">↗</span>
-                </button>
+            <!-- Mid-Right Portion: "PORTFOLIO" -->
+            <div class="hero-role-box" id="hero-role-box">
+                <div class="hero-portfolio-title">PORTFOLIO</div>
+                <div class="hero-portfolio-sub" data-editable="welcome.roleLine2" id="hero-role-2">CSE Student • Achiever • Creator</div>
             </div>
+
+            <!-- Lower-Right Giant Last Name ("MAISHA") -->
+            <div class="hero-name-right" data-editable="welcome.lastName" id="hero-last-name">
+                M<span class="stylized-letter">A</span>ISHA
+            </div>
+
         </div>
     </section>
 
     <!-- =====================================================================
-         2. MAIN PORTFOLIO PAGE (Structured like the Surrounding Templates)
+         2. INNER PORTFOLIO PAGES (Shaded Ash-Green Studio Aesthetic)
          ===================================================================== -->
     <div class="main-portfolio-wrapper" id="main-portfolio-wrapper">
 
-        <!-- Sticky Navigation Bar -->
-        <nav class="sticky-top-nav" aria-label="Portfolio Navigation">
-            <div class="nav-left-brand">
-                <button class="btn-back-welcome" id="btn-show-welcome" title="Return to the Green Welcome Screen">
-                    ← Welcome Page
+        <!-- Sticky Top Header:
+             - Option Bar where the Front Page option is (No Back option!)
+             - Edit Option + "SANJIDA MAISHA" kept as it is + "PORTFOLIO" -->
+        <nav class="sticky-top-nav" aria-label="Inner Page Navigation">
+            <div class="inner-nav-left">
+                <!-- Option Bar where the Front Page option is -->
+                <div class="inner-option-dropdown" id="inner-option-dropdown">
+                    <button class="option-bar-toggle" id="btn-toggle-option-bar" aria-expanded="false">
+                        <span>☰ Options</span>
+                        <span class="chevron-icon">▾</span>
+                    </button>
+                    <div class="option-bar-menu" id="option-bar-menu">
+                        <button class="option-menu-link" data-target="home">Home</button>
+                        <button class="option-menu-link" data-target="sec-student-intro">Student info</button>
+                        <button class="option-menu-link" data-target="sec-achievements">Achievement</button>
+                        <button class="option-menu-link" data-target="sec-passions">Passions</button>
+                        <button class="option-menu-link" data-target="sec-projects">Works</button>
+                        <button class="option-menu-link" data-target="sec-contact">Contact details</button>
+                    </div>
+                </div>
+
+                <!-- Edit Options (Full Info Editor + Direct On-Page Text Edit) -->
+                <button class="edit-trigger-btn" id="btn-inner-edit-modal" title="Open Full Information Editor">
+                    ✏️ Edit Info
                 </button>
-                <span class="nav-brand-title" id="nav-student-name">Sanjida Islam Maisha</span>
+                <button class="edit-trigger-btn ghost" id="btn-toggle-inline-edit" title="Click directly on any text on the page to edit">
+                    🖊️ Edit On-Page: OFF
+                </button>
             </div>
 
-            <div class="nav-section-links">
-                <a href="#sec-contents" class="nav-jump-link">Contents</a>
-                <a href="#sec-student-intro" class="nav-jump-link">01 Student Intro</a>
-                <a href="#sec-achievements" class="nav-jump-link">02 Achievements</a>
-                <a href="#sec-passions" class="nav-jump-link">03 Passions</a>
-                <a href="#sec-projects" class="nav-jump-link">04 Works & Contact</a>
-            </div>
-
-            <div class="nav-right-tools">
-                <button class="tool-pill-btn" id="btn-toggle-inline-edit" title="Click text directly on any template to edit">
-                    ✏️ Edit On-Page: OFF
-                </button>
-                <button class="tool-pill-btn" id="btn-open-customizer" title="Open Full Details Manager">
-                    🗂️ Edit All Details
-                </button>
+            <!-- Kept Name "SANJIDA MAISHA" as it is now + "PORTFOLIO" written in that portion -->
+            <div class="inner-nav-brand-portion">
+                <span class="nav-brand-monogram" id="inner-brand-fullname">SANJIDA MAISHA</span>
+                <span class="brand-divider">/</span>
+                <span class="nav-portfolio-label">PORTFOLIO</span>
             </div>
         </nav>
 
-        <!-- Editorial Template Deck -->
-        <main class="templates-deck">
+        <!-- Shaded Studio Sections -->
+        <main class="studio-sections-container">
 
-            <!-- =============================================================
-                 TEMPLATE SLIDE 1: CONTENTS (Matches Top-Left Slide in Picture)
-                 ============================================================= -->
-            <section class="template-slide slide-contents" id="sec-contents">
-                <div class="contents-terracotta-left">
-                    <div>
-                        <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:10px;">
-                            INDEX & OVERVIEW
-                        </div>
-                        <h3>A curated look into my student life, milestones & creative spirit.</h3>
-                    </div>
-                    <p>
-                        Click any chapter on the right to jump directly to my student introduction, academic achievements, or personal passions.
-                    </p>
-                </div>
+            <!-- SECTION 01: STUDENT INFO -->
+            <section class="studio-section-card reveal-block" id="sec-student-intro"></section>
 
-                <div class="contents-white-center">
-                    <ul class="toc-list">
-                        <li><a href="#sec-student-intro"><span class="toc-num">ABOUT</span> <span>MY STORY</span></a></li>
-                        <li><a href="#sec-student-intro"><span class="toc-num">01</span> <span>STUDENT INTRO & EDUCATION</span></a></li>
-                        <li><a href="#sec-achievements"><span class="toc-num">02</span> <span>ACHIEVEMENTS & HONORS</span></a></li>
-                        <li><a href="#sec-passions"><span class="toc-num">03</span> <span>PASSIONS & INTERESTS</span></a></li>
-                        <li><a href="#sec-projects"><span class="toc-num">04</span> <span>STUDENT WORKS & CONTACT</span></a></li>
-                    </ul>
+            <!-- SECTION 02: ACHIEVEMENT -->
+            <section class="studio-section-card reveal-block" id="sec-achievements"></section>
 
-                    <div class="contents-big-heading">Contents</div>
-                </div>
+            <!-- SECTION 03: PASSIONS -->
+            <section class="studio-section-card reveal-block" id="sec-passions"></section>
 
-                <!-- Right Geometric Strip (Green circles on Apricot) -->
-                <div class="bauhaus-strip-green" aria-hidden="true">
-                    <div class="bauhaus-circle-tile"></div>
-                    <div class="bauhaus-circle-tile"></div>
-                    <div class="bauhaus-circle-tile"></div>
-                    <div class="bauhaus-circle-tile"></div>
-                    <div class="bauhaus-circle-tile"></div>
-                </div>
-            </section>
+            <!-- SECTION 04: WORKS -->
+            <section class="studio-section-card reveal-block" id="sec-projects"></section>
 
-            <!-- =============================================================
-                 TEMPLATE SLIDE 2: STUDENT INTRO / ABOUT (Matches Top-Right Slide)
-                 ============================================================= -->
-            <section class="template-slide slide-about" id="sec-student-intro">
-                <!-- Left Deep Forest Green Column -->
-                <div class="about-green-panel" id="about-green-panel"></div>
-
-                <!-- Center Portrait Photo with Diagonal Hatch Stripes -->
-                <div class="about-photo-panel">
-                    <div class="student-portrait-wrapper">
-                        <button class="btn-upload-portrait" id="btn-change-portrait" title="Upload your own photo">
-                            📷 Change Photo
-                        </button>
-                        <img id="student-portrait-img" src="" alt="Student Portrait" />
-                        <div class="diagonal-hatch-badge" aria-hidden="true">
-                            <div class="hatch-row-coral"></div>
-                            <div class="hatch-row-green"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Soft Apricot 2x2 Credentials Column -->
-                <div class="about-apricot-panel" id="about-apricot-panel"></div>
-            </section>
-
-            <!-- =============================================================
-                 TEMPLATE SLIDE 3: ACHIEVEMENTS (Matches Bottom-Right Apricot & Geometric Slide)
-                 ============================================================= -->
-            <section class="template-slide slide-achievements" id="sec-achievements">
-                <div class="achievements-main-area" id="achievements-main-area"></div>
-
-                <!-- Geometric Terracotta & Apricot Semi-Circle Bauhaus Block -->
-                <div class="bauhaus-terracotta-panel" aria-hidden="true">
-                    <div class="geo-semi bottom-round"></div>
-                    <div class="geo-semi left-round"></div>
-                    <div class="geo-semi top-round"></div>
-                    <div class="geo-semi right-round"></div>
-                    <div class="geo-semi left-round"></div>
-                    <div class="geo-semi bottom-round"></div>
-                    <div class="geo-semi right-round"></div>
-                    <div class="geo-semi top-round"></div>
-                </div>
-            </section>
-
-            <!-- =============================================================
-                 TEMPLATE SLIDE 4: MY PASSIONS (Matches Bottom-Left Pistachio + 2x2 Grid)
-                 ============================================================= -->
-            <section class="template-slide slide-passions" id="sec-passions">
-                <!-- Left Pistachio Green Column -->
-                <div class="passions-pistachio-sidebar" id="passions-pistachio-sidebar"></div>
-
-                <!-- Right White 2x2 Visual Photo Grid -->
-                <div class="passions-white-collage" id="passions-white-collage"></div>
-            </section>
-
-            <!-- =============================================================
-                 TEMPLATE SLIDE 5: STUDENT WORKS & CONTACT (Matches White/Green Project Cards)
-                 ============================================================= -->
-            <section class="template-slide slide-projects-contact" id="sec-projects">
-                <div class="projects-white-panel" id="projects-white-panel"></div>
-                <div class="contact-green-panel" id="contact-green-panel"></div>
-            </section>
+            <!-- SECTION 05: CONTACT DETAILS -->
+            <section class="studio-section-card reveal-block" id="sec-contact"></section>
 
         </main>
     </div>
 
     <!-- =====================================================================
-         3. FULL DETAILS MANAGER MODAL (EDIT INTRO, ACHIEVEMENTS, PASSIONS)
+         3. FULL INFORMATION EDITOR MODAL (EDIT ALL SECTIONS EASILY)
          ===================================================================== -->
-    <div class="modal-backdrop" id="customizer-modal" role="dialog" aria-modal="true">
-        <div class="modal-dialog">
-            <div class="modal-header">
-                <h2>Edit Your Student Portfolio Details</h2>
-                <button class="ghost-pill-btn" id="btn-close-modal">✕ Close</button>
-            </div>
-
-            <div class="modal-tab-bar">
-                <button class="m-tab-btn active" data-tab="welcome">1. Green Welcome Page</button>
-                <button class="m-tab-btn" data-tab="intro">2. Student Intro & Education</button>
-                <button class="m-tab-btn" data-tab="achievements">3. Achievements</button>
-                <button class="m-tab-btn" data-tab="passions">4. My Passions</button>
-                <button class="m-tab-btn" data-tab="projects">5. Student Works</button>
-            </div>
-
-            <div class="modal-content-area" id="modal-content-area"></div>
-
-            <div class="modal-footer">
-                <div style="display:flex; gap:8px;">
-                    <button class="m-tab-btn" id="btn-export-json">💾 Export JSON</button>
-                    <button class="m-tab-btn" id="btn-reset-defaults" style="color:#c06044;">↺ Reset Defaults</button>
+    <div class="editor-modal-backdrop" id="editor-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="editor-modal-title">
+        <div class="editor-modal-dialog">
+            <div class="editor-modal-header">
+                <div>
+                    <h2 id="editor-modal-title">✏️ Edit All Portfolio Information</h2>
+                    <p>Customize every section below — changes save automatically to your browser.</p>
                 </div>
-                <button class="btn-terracotta-submit" id="btn-save-modal">✓ Save All Changes</button>
+                <button class="editor-close-btn" id="btn-close-editor">✕ Close</button>
+            </div>
+
+            <div class="editor-tabs-bar">
+                <button class="editor-tab-btn active" data-etab="home">Home</button>
+                <button class="editor-tab-btn" data-etab="student">Student info</button>
+                <button class="editor-tab-btn" data-etab="achievements">Achievement</button>
+                <button class="editor-tab-btn" data-etab="passions">Passions</button>
+                <button class="editor-tab-btn" data-etab="works">Works</button>
+                <button class="editor-tab-btn" data-etab="contact">Contact details</button>
+            </div>
+
+            <div class="editor-modal-body" id="editor-modal-body">
+                <!-- Populated dynamically by js/script.js -->
+            </div>
+
+            <div class="editor-modal-footer">
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="editor-secondary-btn" id="btn-export-data">💾 Export Backup JSON</button>
+                    <button class="editor-secondary-btn danger" id="btn-reset-data">↺ Reset to Default</button>
+                </div>
+                <button class="editor-save-btn" id="btn-save-editor">✓ Save All Changes</button>
             </div>
         </div>
     </div>

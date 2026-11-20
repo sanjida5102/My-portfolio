@@ -1,34 +1,49 @@
 // =========================================================================
-// Editorial Student Portfolio — Application Controller
+// Sanjida Maisha — Shaded Studio Portfolio, Editor & Animation Controller
 // =========================================================================
 
 (function () {
-    const STORAGE_KEY = 'editorial_student_portfolio_v2';
+    const STORAGE_KEY = 'sanjida_maisha_portfolio_v4';
 
     let portfolioData = loadData();
     let isInlineEditing = false;
-    let activeModalTab = 'welcome';
+    let activeEditorTab = 'home';
+    let isTransitioning = false;
 
     // DOM Elements
     const welcomeScreen = document.getElementById('welcome-screen');
-    const btnEnterMain = document.getElementById('btn-enter-main');
-    const btnShowWelcome = document.getElementById('btn-show-welcome');
-    const btnWelcomeEdit = document.getElementById('btn-welcome-edit');
+    const curtain = document.getElementById('page-transition-curtain');
+    const innerOptionDropdown = document.getElementById('inner-option-dropdown');
+    const btnToggleOptionBar = document.getElementById('btn-toggle-option-bar');
+    const heroStage = document.getElementById('hero-stage');
+    const heroFirstName = document.getElementById('hero-first-name');
+    const heroLastName = document.getElementById('hero-last-name');
+    const heroRoleBox = document.getElementById('hero-role-box');
+    const heroRole2 = document.getElementById('hero-role-2');
+    const heroBrandFullname = document.getElementById('hero-brand-fullname');
+    const innerBrandFullname = document.getElementById('inner-brand-fullname');
+
+    // Editor Elements
+    const editorBackdrop = document.getElementById('editor-modal-backdrop');
+    const editorBody = document.getElementById('editor-modal-body');
+    const btnHeroEdit = document.getElementById('btn-hero-edit');
+    const btnInnerEditModal = document.getElementById('btn-inner-edit-modal');
     const btnToggleInlineEdit = document.getElementById('btn-toggle-inline-edit');
-    const btnDoneEditing = document.getElementById('btn-done-editing');
-    const btnOpenCustomizer = document.getElementById('btn-open-customizer');
-    const customizerModal = document.getElementById('customizer-modal');
-    const modalContentArea = document.getElementById('modal-content-area');
-    const portraitUploadInput = document.getElementById('portrait-upload-input');
+    const btnBannerOpenModal = document.getElementById('btn-banner-open-modal');
+    const btnBannerDone = document.getElementById('btn-banner-done');
+    const btnCloseEditor = document.getElementById('btn-close-editor');
+    const btnSaveEditor = document.getElementById('btn-save-editor');
+    const btnExportData = document.getElementById('btn-export-data');
+    const btnResetData = document.getElementById('btn-reset-data');
 
     // =====================================================================
-    // 1. DATA STORAGE & HELPERS
+    // 1. DATA LOADING & PERSISTENCE
     // =====================================================================
     function loadData() {
         try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
                 return deepMerge(structuredClone(DEFAULT_PORTFOLIO_DATA), parsed);
             }
         } catch (err) {
@@ -79,288 +94,250 @@
             .replace(/"/g, '&quot;');
     }
 
-    // =====================================================================
-    // 2. RENDER ALL TEMPLATES
-    // =====================================================================
-    function renderAll() {
-        renderWelcomePage();
-        renderStudentIntroSlide();
-        renderAchievementsSlide();
-        renderPassionsSlide();
-        renderProjectsAndContactSlide();
-        bindInlineEditableElements();
+    function formatStylizedLastName(word) {
+        const text = (word || 'MAISHA').trim();
+        if (text.length < 3 || isInlineEditing) return escapeHtml(text);
+        return `${escapeHtml(text[0])}<span class="stylized-letter">${escapeHtml(text[1])}</span>${escapeHtml(text.slice(2))}`;
     }
 
-    // ---------------------------------------------------------------------
-    // A. GREEN WELCOME SCREEN
-    // ---------------------------------------------------------------------
-    function renderWelcomePage() {
+    // =====================================================================
+    // 2. RENDER FRONT PAGE & SHADED STUDIO INNER SECTIONS
+    // =====================================================================
+    function renderPortfolio() {
         const w = portfolioData.welcome;
-        document.getElementById('w-name').textContent = w.name;
-        document.getElementById('w-email').textContent = w.email;
-        document.getElementById('w-phone').textContent = w.phone;
-        document.getElementById('w-addr1').textContent = w.addressLine1;
-        document.getElementById('w-addr2').textContent = w.addressLine2;
-        document.getElementById('w-soc1').textContent = w.socialLine1;
-        document.getElementById('w-soc2').textContent = w.socialLine2;
-        document.getElementById('w-year').textContent = w.yearRange;
-        document.getElementById('w-outline').textContent = w.outlineTitle;
-        document.getElementById('w-solid').textContent = w.solidTitle;
-        document.getElementById('w-subtitle').textContent = w.welcomeSubtitle;
-        document.getElementById('w-enter-text').textContent = w.enterBtnText || 'Enter Main Page';
-        document.getElementById('nav-student-name').textContent = w.name;
-    }
+        heroFirstName.textContent = w.firstName || 'SANJIDA';
+        heroLastName.innerHTML = formatStylizedLastName(w.lastName || 'MAISHA');
+        if (heroRole2) heroRole2.textContent = w.roleLine2 || 'CSE Student • Achiever • Creator';
+        const displayFull = (w.fullName || `${w.firstName} ${w.lastName}`).toUpperCase();
+        if (heroBrandFullname) heroBrandFullname.textContent = displayFull;
+        if (innerBrandFullname) innerBrandFullname.textContent = displayFull;
 
-    // ---------------------------------------------------------------------
-    // B. TEMPLATE SLIDE 2: STUDENT INTRO / ABOUT (Top-Right Template)
-    // ---------------------------------------------------------------------
-    function renderStudentIntroSlide() {
+        // 01: Student info
         const s = portfolioData.studentIntro;
-
-        // Left Deep Green Panel
-        const greenPanel = document.getElementById('about-green-panel');
-        greenPanel.innerHTML = `
-            <div>
-                <h2 class="about-serif-title" data-editable="studentIntro.heading">${escapeHtml(s.heading)}</h2>
-                <p class="about-bio-text" data-editable="studentIntro.bioParagraph1">${escapeHtml(s.bioParagraph1)}</p>
-                <p class="about-bio-text" data-editable="studentIntro.bioParagraph2">${escapeHtml(s.bioParagraph2)}</p>
-            </div>
-
-            <div class="about-contact-mini">
-                <strong data-editable="studentIntro.quickContactLabel">${escapeHtml(s.quickContactLabel)}</strong>
-                <div data-editable="studentIntro.quickInfoLine1">${escapeHtml(s.quickInfoLine1)}</div>
-                <div data-editable="studentIntro.quickInfoLine2">${escapeHtml(s.quickInfoLine2)}</div>
-            </div>
-        `;
-
-        // Center Portrait Photo
-        const portraitImg = document.getElementById('student-portrait-img');
-        portraitImg.src = s.avatar;
-        portraitImg.onerror = function () {
-            this.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';
-        };
-
-        // Right Apricot 2x2 Academic & Student Profile Panel
-        const apricotPanel = document.getElementById('about-apricot-panel');
-        apricotPanel.innerHTML = `
-            <div class="credentials-2x2-grid">
-                ${(s.credentialsGrid || []).map((cred, idx) => `
-                    <div>
-                        <div class="cred-item-title" data-editable="studentIntro.credentialsGrid.${idx}.title">${escapeHtml(cred.title)}</div>
-                        <div class="cred-item-period" data-editable="studentIntro.credentialsGrid.${idx}.period">${escapeHtml(cred.period)}</div>
-                        <p class="cred-item-desc" data-editable="studentIntro.credentialsGrid.${idx}.description">${escapeHtml(cred.description)}</p>
-                    </div>
-                `).join('')}
-            </div>
-
-            <div class="about-apricot-footer">
-                <span style="font-size:0.76rem; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:var(--forest-green);">
-                    STUDENT INTRODUCTION
-                </span>
-                <div class="hollow-number green-stroke">${escapeHtml(s.sectionNumber || '01')}</div>
-            </div>
-        `;
-    }
-
-    // ---------------------------------------------------------------------
-    // C. TEMPLATE SLIDE 3: ACHIEVEMENTS (Bottom-Right Apricot & Geometric Template)
-    // ---------------------------------------------------------------------
-    function renderAchievementsSlide() {
-        const a = portfolioData.achievements;
-        const container = document.getElementById('achievements-main-area');
-
-        container.innerHTML = `
-            <div>
-                <div class="achievements-header-row">
-                    <div>
-                        <div style="font-size:0.76rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--terracotta-dark); margin-bottom:6px;">
-                            CHAPTER ${escapeHtml(a.sectionNumber || '02')} • PROUD MOMENTS
-                        </div>
-                        <h2 class="achievements-serif-heading" data-editable="achievements.heading">${escapeHtml(a.heading)}</h2>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:14px;">
-                        <button class="btn-back-welcome" id="btn-quick-add-achievement" style="background:var(--forest-green);">
-                            + Add Achievement
-                        </button>
-                        <div class="hollow-number">${escapeHtml(a.sectionNumber || '02')}</div>
-                    </div>
+        document.getElementById('sec-student-intro').innerHTML = `
+            <div class="section-watermark-num">${escapeHtml(s.sectionNumber)}</div>
+            <div class="section-header-flex">
+                <div>
+                    <span class="section-eyebrow">01 • STUDENT INFO</span>
+                    <h2 class="section-display-title" data-editable="studentIntro.heading">${escapeHtml(s.heading || 'Student Info')}</h2>
+                    <p class="section-subtitle" data-editable="studentIntro.subtitle">${escapeHtml(s.subtitle)}</p>
                 </div>
+                <button class="edit-trigger-btn ghost" data-open-editor="student">✏️ Edit Student Info</button>
+            </div>
 
-                <div class="achievements-intro-cols">
-                    <p data-editable="achievements.introLeft">${escapeHtml(a.introLeft)}</p>
-                    <p data-editable="achievements.introRight">${escapeHtml(a.introRight)}</p>
-                </div>
+            <div class="intro-bio-paragraphs stagger-item" style="margin-bottom: 36px;">
+                <p data-editable="studentIntro.bioParagraph1">${escapeHtml(s.bioParagraph1)}</p>
+                <p data-editable="studentIntro.bioParagraph2">${escapeHtml(s.bioParagraph2)}</p>
 
-                <div class="achievements-cards-grid">
-                    ${(a.items || []).map((item, idx) => `
-                        <div class="achievement-card">
-                            <div class="ach-top-meta">
-                                <span data-editable="achievements.items.${idx}.organization">${escapeHtml(item.organization)}</span>
-                                <span data-editable="achievements.items.${idx}.year">${escapeHtml(item.year)}</span>
-                            </div>
-                            <h3 class="ach-title" data-editable="achievements.items.${idx}.title">${escapeHtml(item.title)}</h3>
-                            <p class="ach-desc" data-editable="achievements.items.${idx}.description">${escapeHtml(item.description)}</p>
+                <div class="intro-stats-row">
+                    ${(s.stats || []).map((st, idx) => `
+                        <div class="stat-glass-pill">
+                            <div class="stat-val" data-editable="studentIntro.stats.${idx}.value">${escapeHtml(st.value)}</div>
+                            <div class="stat-lbl" data-editable="studentIntro.stats.${idx}.label">${escapeHtml(st.label)}</div>
                         </div>
                     `).join('')}
                 </div>
             </div>
-        `;
 
-        const quickAddAch = document.getElementById('btn-quick-add-achievement');
-        if (quickAddAch) {
-            quickAddAch.addEventListener('click', () => openModal('achievements'));
-        }
-    }
-
-    // ---------------------------------------------------------------------
-    // D. TEMPLATE SLIDE 4: MY PASSIONS (Bottom-Left Pistachio + 2x2 Photo Grid)
-    // ---------------------------------------------------------------------
-    function renderPassionsSlide() {
-        const p = portfolioData.passions;
-        const sidebar = document.getElementById('passions-pistachio-sidebar');
-        const collage = document.getElementById('passions-white-collage');
-
-        sidebar.innerHTML = `
-            <div>
-                <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--terracotta-dark); margin-bottom:8px;">
-                    CHAPTER ${escapeHtml(p.sectionNumber || '03')} • WHAT DRIVES ME
-                </div>
-                <h2 class="passions-serif-title" data-editable="passions.heading">${escapeHtml(p.heading)}</h2>
-                <p class="passions-sidebar-text" data-editable="passions.sidebarDesc">${escapeHtml(p.sidebarDesc)}</p>
-
-                <div class="passions-meta-box">
-                    <strong data-editable="passions.metaLabel">${escapeHtml(p.metaLabel)}</strong>
-                    <div data-editable="passions.metaLine1">${escapeHtml(p.metaLine1)}</div>
-                    <div data-editable="passions.metaLine2">${escapeHtml(p.metaLine2)}</div>
-                </div>
-            </div>
-
-            <div class="passions-bottom-num">
-                <button class="btn-back-welcome" id="btn-quick-edit-passions" style="background:var(--forest-green);">
-                    + Edit Passions
-                </button>
-                <div class="hollow-number white-stroke">${escapeHtml(p.sectionNumber || '03')}</div>
-            </div>
-        `;
-
-        collage.innerHTML = (p.cards || []).map((card, idx) => `
-            <article class="passion-grid-card">
-                <div class="passion-img-frame">
-                    <img src="${escapeHtml(card.image)}" alt="${escapeHtml(card.title)}" onerror="this.src='https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=600&q=80'" />
-                </div>
-                <div class="passion-card-body">
-                    <span class="passion-tag" data-editable="passions.cards.${idx}.tag">${escapeHtml(card.tag)}</span>
-                    <h3 class="passion-card-title" data-editable="passions.cards.${idx}.title">${escapeHtml(card.title)}</h3>
-                    <p class="passion-card-desc" data-editable="passions.cards.${idx}.description">${escapeHtml(card.description)}</p>
-                </div>
-            </article>
-        `).join('');
-
-        const btnEditPassions = document.getElementById('btn-quick-edit-passions');
-        if (btnEditPassions) {
-            btnEditPassions.addEventListener('click', () => openModal('passions'));
-        }
-    }
-
-    // ---------------------------------------------------------------------
-    // E. TEMPLATE SLIDE 5: STUDENT WORKS & CONTACT
-    // ---------------------------------------------------------------------
-    function renderProjectsAndContactSlide() {
-        const pr = portfolioData.projects;
-        const w = portfolioData.welcome;
-
-        const projectsPanel = document.getElementById('projects-white-panel');
-        projectsPanel.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                <div>
-                    <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--terracotta); margin-bottom:6px;">
-                        CHAPTER ${escapeHtml(pr.sectionNumber || '04')} • PORTFOLIO
-                    </div>
-                    <h2 class="achievements-serif-heading" data-editable="projects.heading">${escapeHtml(pr.heading)}</h2>
-                </div>
-                <div class="hollow-number green-stroke">${escapeHtml(pr.sectionNumber || '04')}</div>
-            </div>
-
-            <div class="projects-grid-2">
-                ${(pr.items || []).map((item, idx) => `
-                    <div class="editorial-project-card">
-                        <div class="proj-green-frame">
-                            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" onerror="this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80'" />
+            <div class="studio-grid-2x2">
+                ${(s.credentialsGrid || []).map((cred, idx) => `
+                    <article class="studio-item-card stagger-item">
+                        <div class="card-top-meta">
+                            <span class="card-index-pill">${escapeHtml(cred.number || '0' + (idx + 1))}</span>
+                            <span class="card-period-tag" data-editable="studentIntro.credentialsGrid.${idx}.period">${escapeHtml(cred.period)}</span>
                         </div>
-                        <h3 class="proj-headline" data-editable="projects.items.${idx}.title">${escapeHtml(item.title)}</h3>
-                        <p class="proj-body-text" data-editable="projects.items.${idx}.description">${escapeHtml(item.description)}</p>
-                        <div class="proj-meta-footer">
-                            <span><span data-editable="projects.items.${idx}.date">${escapeHtml(item.date)}</span> • <span data-editable="projects.items.${idx}.location">${escapeHtml(item.location)}</span></span>
-                            ${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener" style="color:var(--forest-green); text-decoration:none; font-weight:800;">VIEW ↗</a>` : ''}
-                        </div>
-                    </div>
+                        <h3 class="card-heading" data-editable="studentIntro.credentialsGrid.${idx}.title">${escapeHtml(cred.title)}</h3>
+                        <p class="card-description" data-editable="studentIntro.credentialsGrid.${idx}.description">${escapeHtml(cred.description)}</p>
+                    </article>
                 `).join('')}
             </div>
         `;
 
-        const contactPanel = document.getElementById('contact-green-panel');
-        contactPanel.innerHTML = `
-            <div>
-                <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--apricot); margin-bottom:8px;">
-                    GET IN TOUCH
+        // 02: Achievement
+        const a = portfolioData.achievements;
+        document.getElementById('sec-achievements').innerHTML = `
+            <div class="section-watermark-num">${escapeHtml(a.sectionNumber)}</div>
+            <div class="section-header-flex">
+                <div>
+                    <span class="section-eyebrow">02 • ${escapeHtml(a.tag)}</span>
+                    <h2 class="section-display-title" data-editable="achievements.heading">${escapeHtml(a.heading || 'Achievement')}</h2>
+                    <p class="section-subtitle" data-editable="achievements.subtitle">${escapeHtml(a.subtitle)}</p>
                 </div>
-                <h2 class="about-serif-title" style="font-size:2.4rem; margin-bottom:14px;">Let's Connect</h2>
-                <p class="about-bio-text">
-                    Thank you for exploring my student portfolio! Feel free to reach out for academic collaborations, projects, or a friendly conversation.
-                </p>
-
-                <form class="contact-form-editorial" id="contact-form-editorial">
-                    <input type="text" class="editorial-input" placeholder="Your Name" required />
-                    <input type="email" class="editorial-input" placeholder="Your Email" required />
-                    <textarea class="editorial-input" rows="3" placeholder="Write a message..." required></textarea>
-                    <button type="submit" class="btn-terracotta-submit">Send Message ↗</button>
-                </form>
+                <button class="edit-trigger-btn ghost" data-open-editor="achievements">✏️ Edit Achievements</button>
             </div>
 
-            <div class="about-contact-mini">
-                <strong>DIRECT CONTACT</strong>
-                <div>${escapeHtml(w.email)} • ${escapeHtml(w.phone)}</div>
-                <div>${escapeHtml(w.addressLine1)} • ${escapeHtml(w.addressLine2)}</div>
+            <div class="studio-grid-2x2">
+                ${(a.items || []).map((item, idx) => `
+                    <article class="studio-item-card stagger-item">
+                        <div class="card-top-meta">
+                            <span class="card-index-pill">${escapeHtml(item.number || '0' + (idx + 1))}</span>
+                            <span class="card-period-tag">
+                                <span data-editable="achievements.items.${idx}.organization">${escapeHtml(item.organization)}</span> • 
+                                <span data-editable="achievements.items.${idx}.year">${escapeHtml(item.year)}</span>
+                            </span>
+                        </div>
+                        <h3 class="card-heading" data-editable="achievements.items.${idx}.title">${escapeHtml(item.title)}</h3>
+                        <p class="card-description" data-editable="achievements.items.${idx}.description">${escapeHtml(item.description)}</p>
+                    </article>
+                `).join('')}
             </div>
         `;
 
-        const contactForm = document.getElementById('contact-form-editorial');
-        if (contactForm) {
-            contactForm.addEventListener('submit', (e) => {
+        // 03: Passions
+        const p = portfolioData.passions;
+        document.getElementById('sec-passions').innerHTML = `
+            <div class="section-watermark-num">${escapeHtml(p.sectionNumber)}</div>
+            <div class="section-header-flex">
+                <div>
+                    <span class="section-eyebrow">03 • ${escapeHtml(p.tag)}</span>
+                    <h2 class="section-display-title" data-editable="passions.heading">${escapeHtml(p.heading || 'Passions')}</h2>
+                    <p class="section-subtitle" data-editable="passions.subtitle">${escapeHtml(p.subtitle)}</p>
+                </div>
+                <button class="edit-trigger-btn ghost" data-open-editor="passions">✏️ Edit Passions</button>
+            </div>
+
+            <div class="studio-grid-2x2">
+                ${(p.cards || []).map((card, idx) => `
+                    <article class="studio-item-card stagger-item">
+                        <div class="visual-card-media">
+                            <img src="${escapeHtml(card.image)}" alt="${escapeHtml(card.title)}" onerror="this.src='https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=700&q=80'" />
+                        </div>
+                        <div class="card-top-meta">
+                            <span class="card-index-pill">${escapeHtml(card.number || '0' + (idx + 1))}</span>
+                            <span class="card-period-tag" data-editable="passions.cards.${idx}.tag">${escapeHtml(card.tag)}</span>
+                        </div>
+                        <h3 class="card-heading" data-editable="passions.cards.${idx}.title">${escapeHtml(card.title)}</h3>
+                        <p class="card-description" data-editable="passions.cards.${idx}.description">${escapeHtml(card.description)}</p>
+                    </article>
+                `).join('')}
+            </div>
+        `;
+
+        // 04: Works
+        const pr = portfolioData.projects;
+        document.getElementById('sec-projects').innerHTML = `
+            <div class="section-watermark-num">${escapeHtml(pr.sectionNumber)}</div>
+            <div class="section-header-flex">
+                <div>
+                    <span class="section-eyebrow">04 • ${escapeHtml(pr.tag)}</span>
+                    <h2 class="section-display-title" data-editable="projects.heading">${escapeHtml(pr.heading || 'Works')}</h2>
+                    <p class="section-subtitle" data-editable="projects.subtitle">${escapeHtml(pr.subtitle)}</p>
+                </div>
+                <button class="edit-trigger-btn ghost" data-open-editor="works">✏️ Edit Works</button>
+            </div>
+
+            <div class="studio-grid-3">
+                ${(pr.items || []).map((item, idx) => `
+                    <article class="studio-item-card stagger-item">
+                        <div class="visual-card-media">
+                            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" onerror="this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=700&q=80'" />
+                        </div>
+                        <div class="card-top-meta">
+                            <span class="card-index-pill">${escapeHtml(item.number || '0' + (idx + 1))}</span>
+                            <span class="card-period-tag">
+                                <span data-editable="projects.items.${idx}.date">${escapeHtml(item.date)}</span> • 
+                                <span data-editable="projects.items.${idx}.category">${escapeHtml(item.category)}</span>
+                            </span>
+                        </div>
+                        <h3 class="card-heading" data-editable="projects.items.${idx}.title">${escapeHtml(item.title)}</h3>
+                        <p class="card-description" data-editable="projects.items.${idx}.description">${escapeHtml(item.description)}</p>
+                        ${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener" class="card-action-link">Explore Project ↗</a>` : ''}
+                    </article>
+                `).join('')}
+            </div>
+        `;
+
+        // 05: Contact details
+        document.getElementById('sec-contact').innerHTML = `
+            <div class="section-watermark-num">05</div>
+            <div class="section-header-flex">
+                <div>
+                    <span class="section-eyebrow">05 • GET IN TOUCH</span>
+                    <h2 class="section-display-title">Contact Details</h2>
+                    <p class="section-subtitle">Feel free to reach out for academic collaborations, student initiatives, or creative projects.</p>
+                </div>
+                <button class="edit-trigger-btn ghost" data-open-editor="contact">✏️ Edit Contact Info</button>
+            </div>
+
+            <div class="contact-studio-grid">
+                <div class="stagger-item">
+                    <div class="contact-info-list">
+                        <div class="contact-info-row">
+                            <span>Student Name</span>
+                            <strong data-editable="welcome.fullName">${escapeHtml(w.fullName)}</strong>
+                        </div>
+                        <div class="contact-info-row">
+                            <span>Academic Department</span>
+                            <strong data-editable="welcome.department">${escapeHtml(w.department)}</strong>
+                        </div>
+                        <div class="contact-info-row">
+                            <span>Email Address</span>
+                            <strong data-editable="welcome.email">${escapeHtml(w.email)}</strong>
+                        </div>
+                        <div class="contact-info-row">
+                            <span>Phone Number</span>
+                            <strong data-editable="welcome.phone">${escapeHtml(w.phone)}</strong>
+                        </div>
+                        <div class="contact-info-row">
+                            <span>Location</span>
+                            <strong data-editable="welcome.location">${escapeHtml(w.location)}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <form class="studio-form stagger-item" id="studio-contact-form">
+                    <input type="text" class="studio-input" placeholder="Your Name" required />
+                    <input type="email" class="studio-input" placeholder="Your Email Address" required />
+                    <input type="text" class="studio-input" placeholder="Subject" />
+                    <textarea class="studio-input" rows="4" placeholder="Write your message..." required></textarea>
+                    <button type="submit" class="studio-submit-btn">Send Message ↗</button>
+                </form>
+            </div>
+        `;
+
+        const form = document.getElementById('studio-contact-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                alert('Thank you for your message! Your note has been received.');
-                contactForm.reset();
+                alert('Thank you for reaching out! Your message has been sent.');
+                form.reset();
             });
         }
+
+        // Bind section-level Edit buttons
+        document.querySelectorAll('[data-open-editor]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                openEditorModal(btn.getAttribute('data-open-editor'));
+            });
+        });
+
+        bindInlineEditables();
     }
 
     // =====================================================================
-    // 3. WELCOME SCREEN <-> MAIN PAGE NAVIGATION
+    // 3. ON-PAGE CLICK-TO-EDIT MODE
     // =====================================================================
-    btnEnterMain.addEventListener('click', () => {
-        welcomeScreen.classList.add('hidden-cover');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    btnShowWelcome.addEventListener('click', () => {
-        welcomeScreen.classList.remove('hidden-cover');
-    });
-
-    // =====================================================================
-    // 4. INLINE ON-PAGE EDITING
-    // =====================================================================
-    function setInlineEditing(state) {
-        isInlineEditing = state;
+    function setInlineEditMode(enabled) {
+        isInlineEditing = enabled;
         document.body.classList.toggle('is-editing', isInlineEditing);
-        btnToggleInlineEdit.classList.toggle('active', isInlineEditing);
-        btnToggleInlineEdit.textContent = isInlineEditing ? '✏️ Edit On-Page: ON' : '✏️ Edit On-Page: OFF';
-        bindInlineEditableElements();
+        if (btnToggleInlineEdit) {
+            btnToggleInlineEdit.classList.toggle('active', isInlineEditing);
+            btnToggleInlineEdit.textContent = isInlineEditing ? '🖊️ Edit On-Page: ON' : '🖊️ Edit On-Page: OFF';
+        }
+        renderPortfolio();
     }
 
-    btnToggleInlineEdit.addEventListener('click', () => setInlineEditing(!isInlineEditing));
-    btnDoneEditing.addEventListener('click', () => setInlineEditing(false));
+    if (btnToggleInlineEdit) {
+        btnToggleInlineEdit.addEventListener('click', () => setInlineEditMode(!isInlineEditing));
+    }
+    if (btnBannerDone) {
+        btnBannerDone.addEventListener('click', () => setInlineEditMode(false));
+    }
+    if (btnBannerOpenModal) {
+        btnBannerOpenModal.addEventListener('click', () => openEditorModal('student'));
+    }
 
-    function bindInlineEditableElements() {
+    function bindInlineEditables() {
         document.querySelectorAll('[data-editable]').forEach(el => {
             if (isInlineEditing) {
                 el.setAttribute('contenteditable', 'true');
@@ -376,419 +353,647 @@
                     const val = el.innerText.trim();
                     setByPath(portfolioData, path, val);
                     saveData();
-                    renderWelcomePage();
+                    if (!isInlineEditing) {
+                        renderPortfolio();
+                    }
                 });
             }
         });
     }
 
     // =====================================================================
-    // 5. STUDENT PORTRAIT PHOTO UPLOAD
+    // 4. FULL INFORMATION EDITOR MODAL (ALL 6 SECTIONS)
     // =====================================================================
-    document.getElementById('btn-change-portrait').addEventListener('click', () => {
-        portraitUploadInput.click();
-    });
-
-    portraitUploadInput.addEventListener('change', (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function (evt) {
-            const img = new Image();
-            img.onload = function () {
-                const canvas = document.createElement('canvas');
-                const maxDim = 650;
-                let w = img.width;
-                let h = img.height;
-                if (w > h && w > maxDim) {
-                    h = Math.round((h * maxDim) / w);
-                    w = maxDim;
-                } else if (h > maxDim) {
-                    w = Math.round((w * maxDim) / h);
-                    h = maxDim;
-                }
-                canvas.width = w;
-                canvas.height = h;
-                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                portfolioData.studentIntro.avatar = canvas.toDataURL('image/jpeg', 0.86);
-                saveData();
-                renderStudentIntroSlide();
-                if (customizerModal.classList.contains('active')) {
-                    renderModalTab();
-                }
-            };
-            img.src = evt.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
-
-    // =====================================================================
-    // 6. FULL DETAILS CUSTOMIZER MODAL
-    // =====================================================================
-    function openModal(tab = 'welcome') {
-        activeModalTab = tab;
-        customizerModal.classList.add('active');
-        updateModalTabButtons();
-        renderModalTab();
+    function openEditorModal(tab = 'home') {
+        activeEditorTab = tab;
+        editorBackdrop.classList.add('active');
+        updateEditorTabButtons();
+        renderEditorTabContent();
     }
 
-    function closeModal() {
-        customizerModal.classList.remove('active');
-        renderAll();
+    function closeEditorModal() {
+        editorBackdrop.classList.remove('active');
+        renderPortfolio();
     }
 
-    function updateModalTabButtons() {
-        document.querySelectorAll('.m-tab-btn[data-tab]').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === activeModalTab);
+    function updateEditorTabButtons() {
+        document.querySelectorAll('.editor-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-etab') === activeEditorTab);
         });
     }
 
-    document.querySelectorAll('.m-tab-btn[data-tab]').forEach(btn => {
+    document.querySelectorAll('.editor-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            collectModalInputs();
-            activeModalTab = btn.dataset.tab;
-            updateModalTabButtons();
-            renderModalTab();
+            collectEditorInputs();
+            activeEditorTab = btn.getAttribute('data-etab');
+            updateEditorTabButtons();
+            renderEditorTabContent();
         });
     });
 
-    btnOpenCustomizer.addEventListener('click', () => openModal('intro'));
-    btnWelcomeEdit.addEventListener('click', () => openModal('welcome'));
-    document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+    if (btnHeroEdit) btnHeroEdit.addEventListener('click', () => openEditorModal('home'));
+    if (btnInnerEditModal) btnInnerEditModal.addEventListener('click', () => openEditorModal('student'));
+    if (btnCloseEditor) btnCloseEditor.addEventListener('click', closeEditorModal);
 
-    document.getElementById('btn-save-modal').addEventListener('click', () => {
-        collectModalInputs();
-        saveData();
-        closeModal();
-    });
+    if (btnSaveEditor) {
+        btnSaveEditor.addEventListener('click', () => {
+            collectEditorInputs();
+            saveData();
+            closeEditorModal();
+        });
+    }
 
-    function renderModalTab() {
+    function renderEditorTabContent() {
         const w = portfolioData.welcome;
         const s = portfolioData.studentIntro;
         const a = portfolioData.achievements;
         const p = portfolioData.passions;
         const pr = portfolioData.projects;
 
-        if (activeModalTab === 'welcome') {
-            modalContentArea.innerHTML = `
-                <div class="f-grid-2">
-                    <div class="f-group">
-                        <label>Your Full Name:</label>
-                        <input type="text" class="f-input" id="m-w-name" value="${escapeHtml(w.name)}" />
+        if (activeEditorTab === 'home') {
+            editorBody.innerHTML = `
+                <div class="editor-grid-2">
+                    <div class="editor-field">
+                        <label>Left Giant First Name:</label>
+                        <input type="text" class="editor-input" id="ed-w-first" value="${escapeHtml(w.firstName)}" />
                     </div>
-                    <div class="f-group">
-                        <label>Academic Year / Timeline:</label>
-                        <input type="text" class="f-input" id="m-w-year" value="${escapeHtml(w.yearRange)}" />
-                    </div>
-                    <div class="f-group">
-                        <label>Outlined Big Word (e.g. Student / Design):</label>
-                        <input type="text" class="f-input" id="m-w-outline" value="${escapeHtml(w.outlineTitle)}" />
-                    </div>
-                    <div class="f-group">
-                        <label>Solid Big Word (e.g. Portfolio):</label>
-                        <input type="text" class="f-input" id="m-w-solid" value="${escapeHtml(w.solidTitle)}" />
-                    </div>
-                    <div class="f-group">
-                        <label>Email:</label>
-                        <input type="text" class="f-input" id="m-w-email" value="${escapeHtml(w.email)}" />
-                    </div>
-                    <div class="f-group">
-                        <label>Phone:</label>
-                        <input type="text" class="f-input" id="m-w-phone" value="${escapeHtml(w.phone)}" />
-                    </div>
-                    <div class="f-group">
-                        <label>Address / Department Line 1:</label>
-                        <input type="text" class="f-input" id="m-w-addr1" value="${escapeHtml(w.addressLine1)}" />
-                    </div>
-                    <div class="f-group">
-                        <label>City / University Line 2:</label>
-                        <input type="text" class="f-input" id="m-w-addr2" value="${escapeHtml(w.addressLine2)}" />
-                    </div>
-                    <div class="f-group">
-                        <label>Social Handle 1:</label>
-                        <input type="text" class="f-input" id="m-w-soc1" value="${escapeHtml(w.socialLine1)}" />
-                    </div>
-                    <div class="f-group">
-                        <label>Social Link 2:</label>
-                        <input type="text" class="f-input" id="m-w-soc2" value="${escapeHtml(w.socialLine2)}" />
+                    <div class="editor-field">
+                        <label>Right Giant Last Name:</label>
+                        <input type="text" class="editor-input" id="ed-w-last" value="${escapeHtml(w.lastName)}" />
                     </div>
                 </div>
-                <div class="f-group">
-                    <label>Welcome Greeting Message:</label>
-                    <textarea class="f-textarea" id="m-w-sub" rows="2">${escapeHtml(w.welcomeSubtitle)}</textarea>
+                <div class="editor-grid-2">
+                    <div class="editor-field">
+                        <label>Header Full Name:</label>
+                        <input type="text" class="editor-input" id="ed-w-full" value="${escapeHtml(w.fullName)}" />
+                    </div>
+                    <div class="editor-field">
+                        <label>Portfolio Subtitle Line:</label>
+                        <input type="text" class="editor-input" id="ed-w-role2" value="${escapeHtml(w.roleLine2)}" />
+                    </div>
                 </div>
             `;
 
-        } else if (activeModalTab === 'intro') {
-            modalContentArea.innerHTML = `
-                <div class="f-group">
-                    <label>Student Portrait Photo (Upload File or Paste URL):</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" class="f-input" id="m-s-avatar" value="${escapeHtml(s.avatar)}" />
-                        <button type="button" class="m-tab-btn" id="m-btn-upload" style="white-space:nowrap;">📷 Upload File</button>
+        } else if (activeEditorTab === 'student') {
+            editorBody.innerHTML = `
+                <div class="editor-grid-2">
+                    <div class="editor-field">
+                        <label>Section Heading:</label>
+                        <input type="text" class="editor-input" id="ed-s-heading" value="${escapeHtml(s.heading)}" />
+                    </div>
+                    <div class="editor-field">
+                        <label>Section Subtitle:</label>
+                        <input type="text" class="editor-input" id="ed-s-subtitle" value="${escapeHtml(s.subtitle)}" />
                     </div>
                 </div>
-                <div class="f-group">
-                    <label>Student Intro — Paragraph 1:</label>
-                    <textarea class="f-textarea" id="m-s-bio1" rows="3">${escapeHtml(s.bioParagraph1)}</textarea>
+                <div class="editor-field">
+                    <label>Student Introduction — Paragraph 1:</label>
+                    <textarea class="editor-textarea" id="ed-s-bio1" rows="3">${escapeHtml(s.bioParagraph1)}</textarea>
                 </div>
-                <div class="f-group">
-                    <label>Student Intro — Paragraph 2:</label>
-                    <textarea class="f-textarea" id="m-s-bio2" rows="2">${escapeHtml(s.bioParagraph2)}</textarea>
-                </div>
-                <div class="f-grid-2">
-                    <div class="f-group">
-                        <label>Academic Summary Line 1:</label>
-                        <input type="text" class="f-input" id="m-s-q1" value="${escapeHtml(s.quickInfoLine1)}" />
-                    </div>
-                    <div class="f-group">
-                        <label>Academic Summary Line 2:</label>
-                        <input type="text" class="f-input" id="m-s-q2" value="${escapeHtml(s.quickInfoLine2)}" />
-                    </div>
+                <div class="editor-field">
+                    <label>Student Introduction — Paragraph 2:</label>
+                    <textarea class="editor-textarea" id="ed-s-bio2" rows="2">${escapeHtml(s.bioParagraph2)}</textarea>
                 </div>
 
-                <h3 style="margin:16px 0 10px; font-family:var(--font-serif); color:var(--forest-green);">4 Academic & Student Profile Blocks (Apricot Panel)</h3>
-                ${(s.credentialsGrid || []).map((c, idx) => `
-                    <div class="item-editor-box" data-cred-idx="${idx}">
-                        <div class="f-grid-2">
-                            <input type="text" class="f-input m-cred-title" value="${escapeHtml(c.title)}" placeholder="Degree / Focus Title" />
-                            <input type="text" class="f-input m-cred-period" value="${escapeHtml(c.period)}" placeholder="Years / Subtitle" />
+                <h3 style="margin: 18px 0 10px; color: var(--sage-ash); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em;">4 Quick Highlight Stats</h3>
+                <div class="editor-grid-2">
+                    ${(s.stats || []).map((st, idx) => `
+                        <div class="editor-item-card" data-stat-idx="${idx}" style="margin-bottom:4px; padding:12px;">
+                            <div class="editor-grid-2">
+                                <input type="text" class="editor-input ed-st-val" value="${escapeHtml(st.value)}" placeholder="Value (e.g. B.Sc.)" />
+                                <input type="text" class="editor-input ed-st-lbl" value="${escapeHtml(st.label)}" placeholder="Label" />
+                            </div>
                         </div>
-                        <textarea class="f-textarea m-cred-desc" rows="2" style="margin-top:8px;">${escapeHtml(c.description)}</textarea>
+                    `).join('')}
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin: 22px 0 12px;">
+                    <h3 style="color: var(--sage-ash); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em;">Academic & Student Profile Cards</h3>
+                    <button type="button" class="editor-secondary-btn" id="ed-add-cred">+ Add Card</button>
+                </div>
+                ${(s.credentialsGrid || []).map((cred, idx) => `
+                    <div class="editor-item-card" data-cred-idx="${idx}">
+                        <div class="editor-item-header">
+                            <strong>Card #${idx + 1}</strong>
+                            <button type="button" class="editor-secondary-btn danger ed-del-cred" data-idx="${idx}">Remove</button>
+                        </div>
+                        <div class="editor-grid-2">
+                            <div class="editor-field">
+                                <label>Title / Degree:</label>
+                                <input type="text" class="editor-input ed-cred-title" value="${escapeHtml(cred.title)}" />
+                            </div>
+                            <div class="editor-field">
+                                <label>Timeline / Subtitle:</label>
+                                <input type="text" class="editor-input ed-cred-period" value="${escapeHtml(cred.period)}" />
+                            </div>
+                        </div>
+                        <div class="editor-field" style="margin-bottom:0;">
+                            <label>Description:</label>
+                            <textarea class="editor-textarea ed-cred-desc" rows="2">${escapeHtml(cred.description)}</textarea>
+                        </div>
                     </div>
                 `).join('')}
             `;
 
-            document.getElementById('m-btn-upload').addEventListener('click', () => portraitUploadInput.click());
+            document.getElementById('ed-add-cred').addEventListener('click', () => {
+                collectEditorInputs();
+                portfolioData.studentIntro.credentialsGrid.push({
+                    number: '0' + (portfolioData.studentIntro.credentialsGrid.length + 1),
+                    title: 'New Academic / Student Card',
+                    period: '2026',
+                    description: 'Write details about your education, focus area, or campus involvement.'
+                });
+                renderEditorTabContent();
+            });
 
-        } else if (activeModalTab === 'achievements') {
-            modalContentArea.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                    <h3 style="font-family:var(--font-serif); color:var(--forest-green);">Manage Your Student Achievements</h3>
-                    <button type="button" class="btn-terracotta-submit" id="m-add-ach" style="padding:8px 16px;">+ Add Achievement</button>
+            document.querySelectorAll('.ed-del-cred').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    collectEditorInputs();
+                    portfolioData.studentIntro.credentialsGrid.splice(parseInt(btn.dataset.idx, 10), 1);
+                    renderEditorTabContent();
+                });
+            });
+
+        } else if (activeEditorTab === 'achievements') {
+            editorBody.innerHTML = `
+                <div class="editor-field">
+                    <label>Section Subtitle:</label>
+                    <input type="text" class="editor-input" id="ed-a-subtitle" value="${escapeHtml(a.subtitle)}" />
                 </div>
-                <div class="f-grid-2">
-                    <div class="f-group">
-                        <label>Intro Column 1:</label>
-                        <textarea class="f-textarea" id="m-a-intro1" rows="2">${escapeHtml(a.introLeft)}</textarea>
-                    </div>
-                    <div class="f-group">
-                        <label>Intro Column 2:</label>
-                        <textarea class="f-textarea" id="m-a-intro2" rows="2">${escapeHtml(a.introRight)}</textarea>
-                    </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin: 18px 0 12px;">
+                    <h3 style="color: var(--sage-ash); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em;">Your Achievements</h3>
+                    <button type="button" class="editor-save-btn" id="ed-add-ach" style="padding:7px 18px; font-size:0.82rem;">+ Add Achievement</button>
                 </div>
                 ${(a.items || []).map((item, idx) => `
-                    <div class="item-editor-box" data-ach-idx="${idx}">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <div class="editor-item-card" data-ach-idx="${idx}">
+                        <div class="editor-item-header">
                             <strong>Achievement #${idx + 1}</strong>
-                            <button type="button" class="m-tab-btn m-del-ach" data-idx="${idx}" style="color:#c06044;">Remove</button>
+                            <button type="button" class="editor-secondary-btn danger ed-del-ach" data-idx="${idx}">Remove</button>
                         </div>
-                        <div class="f-grid-2">
-                            <input type="text" class="f-input m-ach-title" value="${escapeHtml(item.title)}" placeholder="Achievement / Honor Title" />
-                            <div style="display:flex; gap:8px;">
-                                <input type="text" class="f-input m-ach-org" value="${escapeHtml(item.organization)}" placeholder="Institution / Event" />
-                                <input type="text" class="f-input m-ach-year" value="${escapeHtml(item.year)}" placeholder="Year" />
+                        <div class="editor-field">
+                            <label>Achievement / Award Title:</label>
+                            <input type="text" class="editor-input ed-ach-title" value="${escapeHtml(item.title)}" />
+                        </div>
+                        <div class="editor-grid-2">
+                            <div class="editor-field">
+                                <label>Organization / Institution:</label>
+                                <input type="text" class="editor-input ed-ach-org" value="${escapeHtml(item.organization)}" />
+                            </div>
+                            <div class="editor-field">
+                                <label>Year:</label>
+                                <input type="text" class="editor-input ed-ach-year" value="${escapeHtml(item.year)}" />
                             </div>
                         </div>
-                        <textarea class="f-textarea m-ach-desc" rows="2" style="margin-top:8px;">${escapeHtml(item.description)}</textarea>
+                        <div class="editor-field" style="margin-bottom:0;">
+                            <label>Description:</label>
+                            <textarea class="editor-textarea ed-ach-desc" rows="2">${escapeHtml(item.description)}</textarea>
+                        </div>
                     </div>
                 `).join('')}
             `;
 
-            document.getElementById('m-add-ach').addEventListener('click', () => {
-                collectModalInputs();
+            document.getElementById('ed-add-ach').addEventListener('click', () => {
+                collectEditorInputs();
                 portfolioData.achievements.items.unshift({
-                    number: '0' + (portfolioData.achievements.items.length + 1),
-                    title: 'New Student Achievement',
-                    year: '2026',
+                    number: '01',
+                    title: 'New Achievement or Honor',
                     organization: 'University / Competition',
-                    description: 'Describe what you achieved and what it meant to your student journey.'
+                    year: '2026',
+                    description: 'Describe your achievement here.'
                 });
-                renderModalTab();
+                renderEditorTabContent();
             });
 
-            document.querySelectorAll('.m-del-ach').forEach(btn => {
+            document.querySelectorAll('.ed-del-ach').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    collectModalInputs();
+                    collectEditorInputs();
                     portfolioData.achievements.items.splice(parseInt(btn.dataset.idx, 10), 1);
-                    renderModalTab();
+                    renderEditorTabContent();
                 });
             });
 
-        } else if (activeModalTab === 'passions') {
-            modalContentArea.innerHTML = `
-                <div class="f-group">
-                    <label>Passions Sidebar Intro (Pistachio Green Column):</label>
-                    <textarea class="f-textarea" id="m-p-desc" rows="2">${escapeHtml(p.sidebarDesc)}</textarea>
+        } else if (activeEditorTab === 'passions') {
+            editorBody.innerHTML = `
+                <div class="editor-field">
+                    <label>Section Subtitle:</label>
+                    <input type="text" class="editor-input" id="ed-p-subtitle" value="${escapeHtml(p.subtitle)}" />
                 </div>
-                <h3 style="margin:14px 0 10px; font-family:var(--font-serif); color:var(--forest-green);">Your 4 Passion Cards</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin: 18px 0 12px;">
+                    <h3 style="color: var(--sage-ash); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em;">Your Passions</h3>
+                    <button type="button" class="editor-save-btn" id="ed-add-pas" style="padding:7px 18px; font-size:0.82rem;">+ Add Passion</button>
+                </div>
                 ${(p.cards || []).map((card, idx) => `
-                    <div class="item-editor-box" data-passion-idx="${idx}">
-                        <div class="f-grid-2">
-                            <input type="text" class="f-input m-pas-title" value="${escapeHtml(card.title)}" placeholder="Passion Title" />
-                            <input type="text" class="f-input m-pas-tag" value="${escapeHtml(card.tag)}" placeholder="Category Tag" />
+                    <div class="editor-item-card" data-pas-idx="${idx}">
+                        <div class="editor-item-header">
+                            <strong>Passion #${idx + 1}</strong>
+                            <button type="button" class="editor-secondary-btn danger ed-del-pas" data-idx="${idx}">Remove</button>
                         </div>
-                        <div class="f-group" style="margin-top:8px; margin-bottom:8px;">
-                            <input type="text" class="f-input m-pas-img" value="${escapeHtml(card.image)}" placeholder="Image URL" />
+                        <div class="editor-grid-2">
+                            <div class="editor-field">
+                                <label>Passion Title:</label>
+                                <input type="text" class="editor-input ed-pas-title" value="${escapeHtml(card.title)}" />
+                            </div>
+                            <div class="editor-field">
+                                <label>Tag / Category:</label>
+                                <input type="text" class="editor-input ed-pas-tag" value="${escapeHtml(card.tag)}" />
+                            </div>
                         </div>
-                        <textarea class="f-textarea m-pas-desc" rows="2">${escapeHtml(card.description)}</textarea>
+                        <div class="editor-field">
+                            <label>Image URL:</label>
+                            <input type="text" class="editor-input ed-pas-img" value="${escapeHtml(card.image)}" />
+                        </div>
+                        <div class="editor-field" style="margin-bottom:0;">
+                            <label>Description:</label>
+                            <textarea class="editor-textarea ed-pas-desc" rows="2">${escapeHtml(card.description)}</textarea>
+                        </div>
                     </div>
                 `).join('')}
             `;
 
-        } else if (activeModalTab === 'projects') {
-            modalContentArea.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                    <h3 style="font-family:var(--font-serif); color:var(--forest-green);">Student Projects & Academic Works</h3>
-                    <button type="button" class="btn-terracotta-submit" id="m-add-proj" style="padding:8px 16px;">+ Add Project</button>
+            document.getElementById('ed-add-pas').addEventListener('click', () => {
+                collectEditorInputs();
+                portfolioData.passions.cards.push({
+                    number: '0' + (portfolioData.passions.cards.length + 1),
+                    title: 'New Passion or Interest',
+                    tag: 'Personal Interest',
+                    image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=700&q=80',
+                    description: 'Describe what you love about this passion.'
+                });
+                renderEditorTabContent();
+            });
+
+            document.querySelectorAll('.ed-del-pas').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    collectEditorInputs();
+                    portfolioData.passions.cards.splice(parseInt(btn.dataset.idx, 10), 1);
+                    renderEditorTabContent();
+                });
+            });
+
+        } else if (activeEditorTab === 'works') {
+            editorBody.innerHTML = `
+                <div class="editor-field">
+                    <label>Section Subtitle:</label>
+                    <input type="text" class="editor-input" id="ed-pr-subtitle" value="${escapeHtml(pr.subtitle)}" />
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin: 18px 0 12px;">
+                    <h3 style="color: var(--sage-ash); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em;">Your Works & Projects</h3>
+                    <button type="button" class="editor-save-btn" id="ed-add-work" style="padding:7px 18px; font-size:0.82rem;">+ Add Work</button>
                 </div>
                 ${(pr.items || []).map((item, idx) => `
-                    <div class="item-editor-box" data-proj-idx="${idx}">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                            <strong>Work #${idx + 1}</strong>
-                            <button type="button" class="m-tab-btn m-del-proj" data-idx="${idx}" style="color:#c06044;">Remove</button>
+                    <div class="editor-item-card" data-work-idx="${idx}">
+                        <div class="editor-item-header">
+                            <strong>Project #${idx + 1}</strong>
+                            <button type="button" class="editor-secondary-btn danger ed-del-work" data-idx="${idx}">Remove</button>
                         </div>
-                        <div class="f-grid-2">
-                            <input type="text" class="f-input m-pr-title" value="${escapeHtml(item.title)}" placeholder="Project Title" />
-                            <div style="display:flex; gap:8px;">
-                                <input type="text" class="f-input m-pr-date" value="${escapeHtml(item.date)}" placeholder="Year" />
-                                <input type="text" class="f-input m-pr-loc" value="${escapeHtml(item.location)}" placeholder="Category" />
+                        <div class="editor-field">
+                            <label>Project Title:</label>
+                            <input type="text" class="editor-input ed-wk-title" value="${escapeHtml(item.title)}" />
+                        </div>
+                        <div class="editor-grid-2">
+                            <div class="editor-field">
+                                <label>Year / Date:</label>
+                                <input type="text" class="editor-input ed-wk-date" value="${escapeHtml(item.date)}" />
+                            </div>
+                            <div class="editor-field">
+                                <label>Category:</label>
+                                <input type="text" class="editor-input ed-wk-cat" value="${escapeHtml(item.category)}" />
                             </div>
                         </div>
-                        <div class="f-grid-2" style="margin-top:8px;">
-                            <input type="text" class="f-input m-pr-img" value="${escapeHtml(item.image)}" placeholder="Image URL" />
-                            <input type="text" class="f-input m-pr-link" value="${escapeHtml(item.link)}" placeholder="Project Link" />
+                        <div class="editor-grid-2">
+                            <div class="editor-field">
+                                <label>Image URL:</label>
+                                <input type="text" class="editor-input ed-wk-img" value="${escapeHtml(item.image)}" />
+                            </div>
+                            <div class="editor-field">
+                                <label>Project Link (GitHub / Live URL):</label>
+                                <input type="text" class="editor-input ed-wk-link" value="${escapeHtml(item.link)}" />
+                            </div>
                         </div>
-                        <textarea class="f-textarea m-pr-desc" rows="2" style="margin-top:8px;">${escapeHtml(item.description)}</textarea>
+                        <div class="editor-field" style="margin-bottom:0;">
+                            <label>Description:</label>
+                            <textarea class="editor-textarea ed-wk-desc" rows="2">${escapeHtml(item.description)}</textarea>
+                        </div>
                     </div>
                 `).join('')}
             `;
 
-            document.getElementById('m-add-proj').addEventListener('click', () => {
-                collectModalInputs();
+            document.getElementById('ed-add-work').addEventListener('click', () => {
+                collectEditorInputs();
                 portfolioData.projects.items.unshift({
+                    number: '01',
                     title: 'New Student Project',
                     date: '2026',
-                    location: 'Academic / Personal',
-                    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
-                    description: 'Short description of your project.',
+                    category: 'Web Application',
+                    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=700&q=80',
+                    description: 'Describe your project and technologies used.',
                     link: 'https://github.com/sanjida5102'
                 });
-                renderModalTab();
+                renderEditorTabContent();
             });
 
-            document.querySelectorAll('.m-del-proj').forEach(btn => {
+            document.querySelectorAll('.ed-del-work').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    collectModalInputs();
+                    collectEditorInputs();
                     portfolioData.projects.items.splice(parseInt(btn.dataset.idx, 10), 1);
-                    renderModalTab();
+                    renderEditorTabContent();
                 });
             });
+
+        } else if (activeEditorTab === 'contact') {
+            editorBody.innerHTML = `
+                <div class="editor-grid-2">
+                    <div class="editor-field">
+                        <label>Full Name:</label>
+                        <input type="text" class="editor-input" id="ed-c-name" value="${escapeHtml(w.fullName)}" />
+                    </div>
+                    <div class="editor-field">
+                        <label>Academic Department / Institution:</label>
+                        <input type="text" class="editor-input" id="ed-c-dept" value="${escapeHtml(w.department)}" />
+                    </div>
+                    <div class="editor-field">
+                        <label>Email Address:</label>
+                        <input type="text" class="editor-input" id="ed-c-email" value="${escapeHtml(w.email)}" />
+                    </div>
+                    <div class="editor-field">
+                        <label>Phone Number:</label>
+                        <input type="text" class="editor-input" id="ed-c-phone" value="${escapeHtml(w.phone)}" />
+                    </div>
+                    <div class="editor-field">
+                        <label>Location / City:</label>
+                        <input type="text" class="editor-input" id="ed-c-loc" value="${escapeHtml(w.location)}" />
+                    </div>
+                    <div class="editor-field">
+                        <label>GitHub Profile URL:</label>
+                        <input type="text" class="editor-input" id="ed-c-git" value="${escapeHtml(w.github)}" />
+                    </div>
+                </div>
+            `;
         }
     }
 
-    function collectModalInputs() {
+    function collectEditorInputs() {
         const val = id => {
             const el = document.getElementById(id);
             return el ? el.value : null;
         };
 
-        if (activeModalTab === 'welcome') {
+        if (activeEditorTab === 'home') {
             const w = portfolioData.welcome;
-            if (val('m-w-name') !== null) w.name = val('m-w-name');
-            if (val('m-w-year') !== null) w.yearRange = val('m-w-year');
-            if (val('m-w-outline') !== null) w.outlineTitle = val('m-w-outline');
-            if (val('m-w-solid') !== null) w.solidTitle = val('m-w-solid');
-            if (val('m-w-email') !== null) w.email = val('m-w-email');
-            if (val('m-w-phone') !== null) w.phone = val('m-w-phone');
-            if (val('m-w-addr1') !== null) w.addressLine1 = val('m-w-addr1');
-            if (val('m-w-addr2') !== null) w.addressLine2 = val('m-w-addr2');
-            if (val('m-w-soc1') !== null) w.socialLine1 = val('m-w-soc1');
-            if (val('m-w-soc2') !== null) w.socialLine2 = val('m-w-soc2');
-            if (val('m-w-sub') !== null) w.welcomeSubtitle = val('m-w-sub');
+            if (val('ed-w-first') !== null) w.firstName = val('ed-w-first');
+            if (val('ed-w-last') !== null) w.lastName = val('ed-w-last');
+            if (val('ed-w-full') !== null) w.fullName = val('ed-w-full');
+            if (val('ed-w-role2') !== null) w.roleLine2 = val('ed-w-role2');
 
-        } else if (activeModalTab === 'intro') {
+        } else if (activeEditorTab === 'student') {
             const s = portfolioData.studentIntro;
-            if (val('m-s-avatar') !== null) s.avatar = val('m-s-avatar');
-            if (val('m-s-bio1') !== null) s.bioParagraph1 = val('m-s-bio1');
-            if (val('m-s-bio2') !== null) s.bioParagraph2 = val('m-s-bio2');
-            if (val('m-s-q1') !== null) s.quickInfoLine1 = val('m-s-q1');
-            if (val('m-s-q2') !== null) s.quickInfoLine2 = val('m-s-q2');
+            if (val('ed-s-heading') !== null) s.heading = val('ed-s-heading');
+            if (val('ed-s-subtitle') !== null) s.subtitle = val('ed-s-subtitle');
+            if (val('ed-s-bio1') !== null) s.bioParagraph1 = val('ed-s-bio1');
+            if (val('ed-s-bio2') !== null) s.bioParagraph2 = val('ed-s-bio2');
 
-            const credBoxes = document.querySelectorAll('[data-cred-idx]');
-            if (credBoxes.length) {
-                s.credentialsGrid = Array.from(credBoxes).map(box => ({
-                    title: box.querySelector('.m-cred-title').value,
-                    period: box.querySelector('.m-cred-period').value,
-                    description: box.querySelector('.m-cred-desc').value
+            const statCards = document.querySelectorAll('[data-stat-idx]');
+            if (statCards.length) {
+                s.stats = Array.from(statCards).map(card => ({
+                    value: card.querySelector('.ed-st-val').value,
+                    label: card.querySelector('.ed-st-lbl').value
                 }));
             }
 
-        } else if (activeModalTab === 'achievements') {
-            const a = portfolioData.achievements;
-            if (val('m-a-intro1') !== null) a.introLeft = val('m-a-intro1');
-            if (val('m-a-intro2') !== null) a.introRight = val('m-a-intro2');
-
-            const achBoxes = document.querySelectorAll('[data-ach-idx]');
-            if (achBoxes.length) {
-                a.items = Array.from(achBoxes).map((box, i) => ({
+            const credCards = document.querySelectorAll('[data-cred-idx]');
+            if (credCards.length) {
+                s.credentialsGrid = Array.from(credCards).map((card, i) => ({
                     number: '0' + (i + 1),
-                    title: box.querySelector('.m-ach-title').value,
-                    organization: box.querySelector('.m-ach-org').value,
-                    year: box.querySelector('.m-ach-year').value,
-                    description: box.querySelector('.m-ach-desc').value
+                    title: card.querySelector('.ed-cred-title').value,
+                    period: card.querySelector('.ed-cred-period').value,
+                    description: card.querySelector('.ed-cred-desc').value
                 }));
             }
 
-        } else if (activeModalTab === 'passions') {
+        } else if (activeEditorTab === 'achievements') {
+            const a = portfolioData.achievements;
+            if (val('ed-a-subtitle') !== null) a.subtitle = val('ed-a-subtitle');
+            const achCards = document.querySelectorAll('[data-ach-idx]');
+            if (achCards.length) {
+                a.items = Array.from(achCards).map((card, i) => ({
+                    number: '0' + (i + 1),
+                    title: card.querySelector('.ed-ach-title').value,
+                    organization: card.querySelector('.ed-ach-org').value,
+                    year: card.querySelector('.ed-ach-year').value,
+                    description: card.querySelector('.ed-ach-desc').value
+                }));
+            }
+
+        } else if (activeEditorTab === 'passions') {
             const p = portfolioData.passions;
-            if (val('m-p-desc') !== null) p.sidebarDesc = val('m-p-desc');
-            const pasBoxes = document.querySelectorAll('[data-passion-idx]');
-            if (pasBoxes.length) {
-                p.cards = Array.from(pasBoxes).map(box => ({
-                    title: box.querySelector('.m-pas-title').value,
-                    tag: box.querySelector('.m-pas-tag').value,
-                    image: box.querySelector('.m-pas-img').value,
-                    description: box.querySelector('.m-pas-desc').value
+            if (val('ed-p-subtitle') !== null) p.subtitle = val('ed-p-subtitle');
+            const pasCards = document.querySelectorAll('[data-pas-idx]');
+            if (pasCards.length) {
+                p.cards = Array.from(pasCards).map((card, i) => ({
+                    number: '0' + (i + 1),
+                    title: card.querySelector('.ed-pas-title').value,
+                    tag: card.querySelector('.ed-pas-tag').value,
+                    image: card.querySelector('.ed-pas-img').value,
+                    description: card.querySelector('.ed-pas-desc').value
                 }));
             }
 
-        } else if (activeModalTab === 'projects') {
-            const prBoxes = document.querySelectorAll('[data-proj-idx]');
-            if (prBoxes.length) {
-                portfolioData.projects.items = Array.from(prBoxes).map(box => ({
-                    title: box.querySelector('.m-pr-title').value,
-                    date: box.querySelector('.m-pr-date').value,
-                    location: box.querySelector('.m-pr-loc').value,
-                    image: box.querySelector('.m-pr-img').value,
-                    link: box.querySelector('.m-pr-link').value,
-                    description: box.querySelector('.m-pr-desc').value
+        } else if (activeEditorTab === 'works') {
+            const pr = portfolioData.projects;
+            if (val('ed-pr-subtitle') !== null) pr.subtitle = val('ed-pr-subtitle');
+            const workCards = document.querySelectorAll('[data-work-idx]');
+            if (workCards.length) {
+                pr.items = Array.from(workCards).map((card, i) => ({
+                    number: '0' + (i + 1),
+                    title: card.querySelector('.ed-wk-title').value,
+                    date: card.querySelector('.ed-wk-date').value,
+                    category: card.querySelector('.ed-wk-cat').value,
+                    image: card.querySelector('.ed-wk-img').value,
+                    link: card.querySelector('.ed-wk-link').value,
+                    description: card.querySelector('.ed-wk-desc').value
                 }));
+            }
+
+        } else if (activeEditorTab === 'contact') {
+            const w = portfolioData.welcome;
+            if (val('ed-c-name') !== null) w.fullName = val('ed-c-name');
+            if (val('ed-c-dept') !== null) w.department = val('ed-c-dept');
+            if (val('ed-c-email') !== null) w.email = val('ed-c-email');
+            if (val('ed-c-phone') !== null) w.phone = val('ed-c-phone');
+            if (val('ed-c-loc') !== null) w.location = val('ed-c-loc');
+            if (val('ed-c-git') !== null) w.github = val('ed-c-git');
+        }
+    }
+
+    if (btnExportData) {
+        btnExportData.addEventListener('click', () => {
+            collectEditorInputs();
+            const blob = new Blob([JSON.stringify(portfolioData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sanjida-maisha-portfolio-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    if (btnResetData) {
+        btnResetData.addEventListener('click', () => {
+            if (confirm('Reset all portfolio information back to the default template?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                portfolioData = structuredClone(DEFAULT_PORTFOLIO_DATA);
+                renderEditorTabContent();
+                renderPortfolio();
+            }
+        });
+    }
+
+    // =====================================================================
+    // 5. OPTION BAR & CINEMATIC PAGE TRANSITIONS
+    // =====================================================================
+    function highlightActiveOption(targetId) {
+        document.querySelectorAll('[data-target]').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-target') === targetId);
+        });
+    }
+
+    function navigateToOption(targetId) {
+        if (innerOptionDropdown) {
+            innerOptionDropdown.classList.remove('open');
+        }
+
+        if (targetId === 'home') {
+            highlightActiveOption('home');
+            if (!welcomeScreen.classList.contains('hidden-cover')) return;
+            transitionBackToFrontPage();
+            return;
+        }
+
+        highlightActiveOption(targetId);
+
+        if (!welcomeScreen.classList.contains('hidden-cover')) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            curtain.classList.remove('leaving');
+            curtain.classList.add('active');
+
+            setTimeout(() => {
+                welcomeScreen.classList.add('hidden-cover');
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) {
+                    const yOffset = -95;
+                    const y = targetEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    window.scrollTo({ top: Math.max(0, y), behavior: 'instant' });
+                    targetEl.classList.add('is-visible');
+                }
+            }, 480);
+
+            setTimeout(() => {
+                curtain.classList.remove('active');
+                curtain.classList.add('leaving');
+                observeSections();
+            }, 680);
+
+            setTimeout(() => {
+                curtain.classList.remove('leaving');
+                isTransitioning = false;
+            }, 1350);
+        } else {
+            const targetEl = document.getElementById(targetId);
+            if (targetEl) {
+                const yOffset = -95;
+                const y = targetEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                targetEl.classList.add('is-visible');
             }
         }
     }
 
-    // Export JSON & Reset Defaults
-    document.getElementById('btn-export-json').addEventListener('click', () => {
-        collectModalInputs();
-        const blob = new Blob([JSON.stringify(portfolioData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'student-portfolio-data.json';
-        a.click();
-        URL.revokeObjectURL(url);
+    function transitionBackToFrontPage() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        curtain.classList.remove('leaving');
+        curtain.classList.add('active');
+
+        setTimeout(() => {
+            welcomeScreen.classList.remove('hidden-cover');
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            highlightActiveOption('home');
+        }, 480);
+
+        setTimeout(() => {
+            curtain.classList.remove('active');
+            curtain.classList.add('leaving');
+        }, 680);
+
+        setTimeout(() => {
+            curtain.classList.remove('leaving');
+            isTransitioning = false;
+        }, 1350);
+    }
+
+    document.querySelectorAll('[data-target]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+            navigateToOption(targetId);
+        });
     });
 
-    document.getElementById('btn-reset-defaults').addEventListener('click', () => {
-        if (confirm('Reset all portfolio sections back to the default template?')) {
-            localStorage.removeItem(STORAGE_KEY);
-            portfolioData = structuredClone(DEFAULT_PORTFOLIO_DATA);
-            renderModalTab();
-            renderAll();
+    if (btnToggleOptionBar && innerOptionDropdown) {
+        btnToggleOptionBar.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = innerOptionDropdown.classList.toggle('open');
+            btnToggleOptionBar.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!innerOptionDropdown.contains(e.target)) {
+                innerOptionDropdown.classList.remove('open');
+                btnToggleOptionBar.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    // =====================================================================
+    // 6. SUBTLE 3D MOUSE PARALLAX ON FRONT PAGE
+    // =====================================================================
+    if (heroStage) {
+        window.addEventListener('mousemove', (e) => {
+            if (welcomeScreen.classList.contains('hidden-cover') || isInlineEditing) return;
+            const xNorm = (e.clientX / window.innerWidth - 0.5) * 2;
+            const yNorm = (e.clientY / window.innerHeight - 0.5) * 2;
+
+            heroFirstName.style.transform = `translate3d(${xNorm * -16}px, ${yNorm * -9}px, 0)`;
+            heroLastName.style.transform = `translate3d(${xNorm * 16}px, ${yNorm * 9}px, 0)`;
+            heroRoleBox.style.transform = `translate3d(${xNorm * -6}px, ${yNorm * -5}px, 0)`;
+        });
+    }
+
+    // =====================================================================
+    // 7. SCROLL-TRIGGERED SECTION REVEAL ANIMATIONS
+    // =====================================================================
+    function observeSections() {
+        const blocks = document.querySelectorAll('.reveal-block');
+        if (!('IntersectionObserver' in window)) {
+            blocks.forEach(b => b.classList.add('is-visible'));
+            return;
         }
-    });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        }, { threshold: 0.14 });
+
+        blocks.forEach(b => observer.observe(b));
+    }
 
     // Initialize
-    renderAll();
+    renderPortfolio();
+    observeSections();
 })();
