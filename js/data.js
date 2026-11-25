@@ -9,51 +9,51 @@ const DEFAULT_PORTFOLIO_DATA = {
         lastName: "MAISHA",
         fullName: "Sanjida Maisha",
         roleLine1: "Student Leader,",
-        roleLine2: "Debater • Anchor • Mentor",
+        roleLine2: "Holy Cross College '27 • Debater • Anchor",
         email: "sanjida.maisha@example.com",
         phone: "+880 1XXX-XXXXXX",
         location: "Dhaka, Bangladesh",
-        department: "Student • Debater, Public Speaker & Leader",
+        department: "Holy Cross College (HSC 2027) • Ex-Sena Public School and College, Dhaka",
         github: "https://github.com/sanjida5102",
         linkedin: "https://linkedin.com"
     },
     studentIntro: {
         sectionNumber: "01",
-        tag: "STUDENT INTRODUCTION",
+        tag: "STUDENT INTRODUCTION & ACADEMICS",
         heading: "Student Info",
-        subtitle: "Driven by leadership, public speaking, mentorship, and academic excellence.",
-        bioParagraph1: "Hello! I am Sanjida Maisha — a passionate student, national-level debater, public speaker, and mentor. From leading my school house and the girls' handball team to hosting a Women Empowerment seminar in front of 7,000 women, I thrive on communication, leadership, and inspiring those around me.",
-        bioParagraph2: "Beyond competing in national debate and public speaking platforms, I love giving back by mentoring younger students in debate, oratory, research, and persuasive essay writing.",
+        subtitle: "Holy Cross College (Class of 2027) • SSC GPA 5.00/5.00 from Sena Public School and College, Dhaka.",
+        bioParagraph1: "Hello! I am Sanjida Maisha — a dedicated Science student at Holy Cross College (Graduation Year: 2027), where I am studying Physics, Chemistry, Mathematics, Biology, English, and ICT. Previously, I completed my SSC from Sena Public School and College, Dhaka, achieving a perfect GPA of 5.00 out of 5.00.",
+        bioParagraph2: "Alongside my academic pursuits, I am a national-level debater, public speaking champion, stage anchor, and student leader. From serving as School House Leader and leading the girls' handball team to hosting a Women Empowerment seminar for 7,000 women and mentoring junior students, I strive for excellence both inside and outside the classroom.",
         stats: [
-            { value: "7,000+", label: "Seminar Audience Hosted" },
-            { value: "5+", label: "National & Regional Awards" },
-            { value: "2 Yrs", label: "Stage Anchoring Experience" },
-            { value: "Cls 5–10", label: "Students Mentored" }
+            { value: "5.00 / 5.00", label: "SSC GPA • Sena Public School & College" },
+            { value: "HSC 2027", label: "Holy Cross College" },
+            { value: "6 Subjects", label: "Physics, Chem, Math, Bio, Eng, ICT" },
+            { value: "7,000+", label: "Seminar Audience Hosted" }
         ],
         credentialsGrid: [
             {
                 number: "01",
-                title: "National & Inter-Cantonment Debater",
-                period: "Champion & Best Speaker",
-                description: "Award-winning speaker recognized across BTV School & College Debate, JUDO National Debate Fest, Inter Cantonment Debate, and the Cultural Ministry."
+                title: "Higher Secondary Certificate (HSC) — Holy Cross College",
+                period: "Holy Cross College • Graduation Year: 2027",
+                description: "Currently pursuing Higher Secondary studies at Holy Cross College. Subjects in College: Physics, Chemistry, Math, Biology, English, and ICT."
             },
             {
                 number: "02",
-                title: "Stage Anchor & Event Host",
-                period: "2 Years Anchoring Experience",
-                description: "Hosted a major Seminar on Women Empowerment with 7,000 women present, alongside hosting official Orientation and Farewell events in College."
+                title: "Secondary School Certificate (SSC) — GPA 5.00 out of 5.00",
+                period: "Sena Public School and College, Dhaka",
+                description: "Graduated from Sena Public School and College, Dhaka, achieving a perfect SSC GPA of 5.00 out of 5.00 alongside active leadership as House Leader and Handball Team Leader."
             },
             {
                 number: "03",
-                title: "Debate & Writing Mentor",
-                period: "Classes 5 to 10 Mentorship",
-                description: "Mentored students from Classes 5–10 in debate & public speaking, and guided Classes 7–9 in essay structuring, research, and persuasive writing."
+                title: "College Curriculum & Core Subjects",
+                period: "Science Group • Class of 2027",
+                description: "Studying Physics, Chemistry, Mathematics, Biology, English, and Information & Communication Technology (ICT) at Holy Cross College."
             },
             {
                 number: "04",
-                title: "School & Sports Leadership",
-                period: "House Leader & Team Captain",
-                description: "Served as the House Leader of my school for one year and led the school girls’ handball team for one year."
+                title: "Leadership, Oratory & Mentorship Profile",
+                period: "Debate • Anchoring • Student Governance",
+                description: "Champion public speaker and debater, 2 years of anchoring experience (including college Orientation & Farewell events and a 7,000-attendee seminar), and mentor to students from Classes 5 to 10."
             }
         ]
     },
