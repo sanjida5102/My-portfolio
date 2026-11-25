@@ -16,21 +16,12 @@
         </div>
     </div>
 
-    <!-- Floating Edit Mode Helper Bar (Visible when On-Page Click-to-Edit is active) -->
-    <div class="inline-edit-banner" id="inline-edit-banner">
-        <span>✏️ <strong>On-Page Edit Active:</strong> Click any highlighted text to type directly, or open the Full Editor to add/remove items.</span>
-        <div style="display:flex; gap:8px;">
-            <button class="banner-action-btn" id="btn-banner-open-modal">🗂️ Full Editor</button>
-            <button class="banner-action-btn done" id="btn-banner-done">✓ Done</button>
-        </div>
-    </div>
-
     <!-- =====================================================================
          1. FRONT PAGE (HOME): SHADED ASH-GREEN STUDIO HERO
          ===================================================================== -->
     <section class="welcome-screen" id="welcome-screen">
 
-        <!-- Top Bar: Option Bar at the Top-Left Corner + Edit Option & Brand -->
+        <!-- Top Bar: Option Bar at the Top-Left Corner + Brand -->
         <header class="hero-top-nav">
             <!-- Top-Left Option Bar containing all 6 options -->
             <div class="option-bar-wrapper">
@@ -44,12 +35,9 @@
                 </nav>
             </div>
 
-            <!-- Top-Right Name, Portfolio Tag & Edit Option -->
+            <!-- Top-Right Name & Portfolio Tag -->
             <div class="header-brand-portion">
-                <button class="edit-trigger-btn" id="btn-hero-edit" title="Edit all portfolio information">
-                    ✏️ Edit Info
-                </button>
-                <span class="brand-name-keep" data-editable="welcome.fullName" id="hero-brand-fullname">SANJIDA MAISHA</span>
+                <span class="brand-name-keep" id="hero-brand-fullname">SANJIDA MAISHA</span>
                 <span class="brand-divider">/</span>
                 <span class="brand-portfolio-word">PORTFOLIO</span>
             </div>
@@ -62,18 +50,18 @@
             <div class="hero-studio-orb" aria-hidden="true"></div>
 
             <!-- Left Giant First Name ("SANJIDA") -->
-            <div class="hero-name-left" data-editable="welcome.firstName" id="hero-first-name">
+            <div class="hero-name-left" id="hero-first-name">
                 SANJIDA
             </div>
 
             <!-- Mid-Right Portion: "PORTFOLIO" -->
             <div class="hero-role-box" id="hero-role-box">
                 <div class="hero-portfolio-title">PORTFOLIO</div>
-                <div class="hero-portfolio-sub" data-editable="welcome.roleLine2" id="hero-role-2">CSE Student • Achiever • Creator</div>
+                <div class="hero-portfolio-sub" id="hero-role-2">CSE Student • Achiever • Creator</div>
             </div>
 
             <!-- Lower-Right Giant Last Name ("MAISHA") -->
-            <div class="hero-name-right" data-editable="welcome.lastName" id="hero-last-name">
+            <div class="hero-name-right" id="hero-last-name">
                 M<span class="stylized-letter">A</span>ISHA
             </div>
 
@@ -86,8 +74,8 @@
     <div class="main-portfolio-wrapper" id="main-portfolio-wrapper">
 
         <!-- Sticky Top Header:
-             - Option Bar where the Front Page option is (No Back option!)
-             - Edit Option + "SANJIDA MAISHA" kept as it is + "PORTFOLIO" -->
+             - Option Bar where the Front Page option is
+             - "SANJIDA MAISHA" kept as it is + "PORTFOLIO" -->
         <nav class="sticky-top-nav" aria-label="Inner Page Navigation">
             <div class="inner-nav-left">
                 <!-- Option Bar where the Front Page option is -->
@@ -105,14 +93,6 @@
                         <button class="option-menu-link" data-target="sec-contact">Contact details</button>
                     </div>
                 </div>
-
-                <!-- Edit Options (Full Info Editor + Direct On-Page Text Edit) -->
-                <button class="edit-trigger-btn" id="btn-inner-edit-modal" title="Open Full Information Editor">
-                    ✏️ Edit Info
-                </button>
-                <button class="edit-trigger-btn ghost" id="btn-toggle-inline-edit" title="Click directly on any text on the page to edit">
-                    🖊️ Edit On-Page: OFF
-                </button>
             </div>
 
             <!-- Kept Name "SANJIDA MAISHA" as it is now + "PORTFOLIO" written in that portion -->
@@ -142,42 +122,6 @@
             <section class="studio-section-card reveal-block" id="sec-contact"></section>
 
         </main>
-    </div>
-
-    <!-- =====================================================================
-         3. FULL INFORMATION EDITOR MODAL (EDIT ALL SECTIONS EASILY)
-         ===================================================================== -->
-    <div class="editor-modal-backdrop" id="editor-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="editor-modal-title">
-        <div class="editor-modal-dialog">
-            <div class="editor-modal-header">
-                <div>
-                    <h2 id="editor-modal-title">✏️ Edit All Portfolio Information</h2>
-                    <p>Customize every section below — changes save automatically to your browser.</p>
-                </div>
-                <button class="editor-close-btn" id="btn-close-editor">✕ Close</button>
-            </div>
-
-            <div class="editor-tabs-bar">
-                <button class="editor-tab-btn active" data-etab="home">Home</button>
-                <button class="editor-tab-btn" data-etab="student">Student info</button>
-                <button class="editor-tab-btn" data-etab="achievements">Achievement</button>
-                <button class="editor-tab-btn" data-etab="passions">Passions</button>
-                <button class="editor-tab-btn" data-etab="works">Works</button>
-                <button class="editor-tab-btn" data-etab="contact">Contact details</button>
-            </div>
-
-            <div class="editor-modal-body" id="editor-modal-body">
-                <!-- Populated dynamically by js/script.js -->
-            </div>
-
-            <div class="editor-modal-footer">
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button class="editor-secondary-btn" id="btn-export-data">💾 Export Backup JSON</button>
-                    <button class="editor-secondary-btn danger" id="btn-reset-data">↺ Reset to Default</button>
-                </div>
-                <button class="editor-save-btn" id="btn-save-editor">✓ Save All Changes</button>
-            </div>
-        </div>
     </div>
 
     <script src="js/data.js"></script>
